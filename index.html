@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shef Admin</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; max-width: 980px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 12px 0; }
+    input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
+    textarea { min-height: 120px; }
+    button { padding: 10px 14px; border: 1px solid #333; border-radius: 10px; background: #111; color: #fff; cursor: pointer; }
+    button.secondary { background: #fff; color: #111; border-color: #bbb; }
+    .hidden { display: none; }
+    .muted { color: #666; font-size: 13px; }
+    .error { color: #b00020; }
+    .ok { color: #0a7a2f; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #eee; text-align: left; padding: 10px; vertical-align: top; }
+    code { background: #f6f6f6; padding: 2px 6px; border-radius: 6px; }
+    input[type="checkbox"] {
+  width: auto;
+}
+
+  </style>
+</head>
+<body>
+  <h1>Shef Admin</h1>
+  <p class="muted">Local admin panel (Supabase)</p>
+
+  <div id="msg" class="card hidden"></div>
+
+  <!-- LOGIN -->
+  <div id="loginView" class="card">
+    <h2>Login</h2>
+    <div class="row">
+      <div style="flex: 1; min-width: 260px;">
+        <label>Email</label>
+        <input id="email" type="email" placeholder="you@example.com" />
+      </div>
+      <div style="flex: 1; min-width: 260px;">
+        <label>Password</label>
+        <input id="password" type="password" placeholder="••••••••" />
+      </div>
+    </div>
+    <div style="margin-top: 12px;">
+      <button id="btnLogin">Sign in</button>
+    </div>
+
+    <hr style="margin: 16px 0; border: none; border-top: 1px solid #eee;" />
+
+    <p class="muted">
+      Put your keys in the script at the bottom:
+      <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>
+    </p>
+  </div>
+
+  <!-- APP -->
+  <div id="appView" class="hidden">
+    <div class="card">
+      <div class="row" style="align-items: center;">
+        <div style="flex: 1;">
+          <div><strong>Signed in as:</strong> <span id="whoami"></span></div>
+          <div class="muted" id="adminStatus"></div>
+        </div>
+        <div>
+          <button class="secondary" id="btnSignOut">Sign out</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Menu</h2>
+      <div class="row">
+        <button id="navAll">See All Problems</button>
+        <button id="navMCQ">Add MCQ Problem</button>
+        <button id="navNum">Add Numeric Nonnegative Problem</button>
+      </div>
+    </div>
+
+    <!-- SEE ALL -->
+    <div id="viewAll" class="card hidden">
+      <h2>All Problems</h2>
+      <div class="row">
+        <div style="flex: 1; min-width: 260px;">
+          <label>Limit</label>
+          <input id="listLimit" type="number" value="50" min="1" max="500" />
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Sort</label>
+          <select id="listSort">
+            <option value="created_at_desc">Created (newest)</option>
+            <option value="created_at_asc">Created (oldest)</option>
+            <option value="integer_id_desc">Integer ID (desc)</option>
+            <option value="integer_id_asc">Integer ID (asc)</option>
+          </select>
+        </div>
+        <div style="align-self: end;">
+          <button id="btnReload">Reload</button>
+        </div>
+      </div>
+
+      <div id="problemsTableWrap" style="margin-top: 12px;"></div>
+    </div>
+
+    <!-- ADD MCQ -->
+    <!-- <div id="viewMCQ" class="card hidden">
+      <h2>Add MCQ Problem</h2>
+
+      <label>Statement (required)</label>
+      <textarea id="mcq_statement" placeholder="Problem statement..."></textarea>
+
+      <div class="row">
+        <div style="flex: 1; min-width: 260px;">
+          <label>Fields (comma-separated, required)</label>
+            <div id="mcq_fields">
+  <label style="display: block; margin-bottom: 6px;">
+    <input type="checkbox" value="algebra"> algebra
+  </label>
+  <label style="display: block; margin-bottom: 6px;">
+    <input type="checkbox" value="geometry"> geometry
+  </label>
+  <label style="display: block; margin-bottom: 6px;">
+    <input type="checkbox" value="combinatorics"> combinatorics
+  </label>
+  <label style="display: block;">
+    <input type="checkbox" value="number_theory"> number_theory
+  </label>
+</div>
+
+
+
+          <div class="muted">Must match your enum values in <code>problem_field</code>.</div>
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Themes (comma-separated)</label>
+          <input id="mcq_themes" placeholder="ineq, angles" />
+        </div>
+      </div>
+
+      <label>Hints</label>
+        <div id="mcq_hints_wrap"></div>
+        <div style="margin-top: 8px;">
+        <button type="button" class="secondary" id="btnAddMcqHint">Add hint</button>
+        </div>
+
+     <label>Solution pages</label>
+<div id="mcq_solution_wrap"></div>
+<div style="margin-top: 8px;">
+  <button type="button" class="secondary" id="btnAddMcqSolutionPage">Add solution page</button>
+</div>
+
+      <div class="row">
+        <div style="flex: 1; min-width: 260px;">
+          <label>Rating type</label>
+          <select id="mcq_rating_type">
+            <option value="single">single</option>
+            <option value="range">range</option>
+          </select>
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Single value (0–100)</label>
+          <input id="mcq_single_value" type="number" min="0" max="100" value="15" />
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Range min / max (0–100)</label>
+          <div class="row">
+            <input id="mcq_range_min" type="number" min="0" max="100" placeholder="min" />
+            <input id="mcq_range_max" type="number" min="0" max="100" placeholder="max" />
+          </div>
+        </div>
+      </div>
+
+      <label>Choices (at least 2)</label>
+        <div id="mcq_choices_wrap"></div>
+        <div style="margin-top: 8px;">
+        <button type="button" class="secondary" id="btnAddChoice">Add choice</button>
+        </div>
+
+      <label>Correct choice</label>
+        <select id="mcq_correct_choice_select"></select>
+
+      <label>Note (optional)</label>
+      <textarea id="mcq_note" placeholder="Internal note..."></textarea>
+
+      <div style="margin-top: 12px;">
+        <button id="btnCreateMCQ">Create MCQ</button>
+      </div>
+    </div> -->
+    <div id="viewMCQ" class="card hidden">
+      <h2>Add MCQ Problem</h2>
+
+      <div class="row" style="align-items: flex-start;">
+        <!-- LEFT: your existing MCQ form -->
+        <div style="flex: 2; min-width: 520px;">
+
+          <label>Statement (required)</label>
+          <textarea id="mcq_statement" placeholder="Problem statement..."></textarea>
+
+          <!-- KEEP ALL YOUR EXISTING MCQ CONTENT BELOW EXACTLY THE SAME -->
+          <div class="row">
+            <div style="flex: 1; min-width: 260px;">
+              <label>Fields (comma-separated, required)</label>
+              <div id="mcq_fields">
+                <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="algebra"> algebra</label>
+                <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="geometry"> geometry</label>
+                <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="combinatorics"> combinatorics</label>
+                <label style="display:block;"><input type="checkbox" value="number_theory"> number_theory</label>
+              </div>
+              <div class="muted">Must match your enum values in <code>problem_field</code>.</div>
+            </div>
+
+            <div style="flex: 1; min-width: 260px;">
+              <label>Themes (comma-separated)</label>
+              <input id="mcq_themes" placeholder="ineq, angles" />
+            </div>
+          </div>
+
+          <label>Hints</label>
+          <div id="mcq_hints_wrap"></div>
+          <div style="margin-top: 8px;">
+            <button type="button" class="secondary" id="btnAddMcqHint">Add hint</button>
+          </div>
+
+          <label>Solution pages</label>
+          <div id="mcq_solution_wrap"></div>
+          <div style="margin-top: 8px;">
+            <button type="button" class="secondary" id="btnAddMcqSolutionPage">Add solution page</button>
+          </div>
+
+          <div class="row">
+            <div style="flex: 1; min-width: 260px;">
+              <label>Rating type</label>
+              <select id="mcq_rating_type">
+                <option value="single">single</option>
+                <option value="range">range</option>
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 260px;">
+              <label>Single value (0–100)</label>
+              <input id="mcq_single_value" type="number" min="0" max="100" value="15" />
+            </div>
+            <div style="flex: 1; min-width: 260px;">
+              <label>Range min / max (0–100)</label>
+              <div class="row">
+                <input id="mcq_range_min" type="number" min="0" max="100" placeholder="min" />
+                <input id="mcq_range_max" type="number" min="0" max="100" placeholder="max" />
+              </div>
+            </div>
+          </div>
+
+          <label>Choices (at least 2)</label>
+          <div id="mcq_choices_wrap"></div>
+          <div style="margin-top: 8px;">
+            <button type="button" class="secondary" id="btnAddChoice">Add choice</button>
+          </div>
+
+          <label>Correct choice</label>
+          <select id="mcq_correct_choice_select"></select>
+
+          <label>Note (optional)</label>
+          <textarea id="mcq_note" placeholder="Internal note..."></textarea>
+
+          <div style="margin-top: 12px;">
+            <button id="btnCreateMCQ">Create MCQ</button>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: import panel -->
+        <div style="flex: 1; min-width: 320px; align-self: flex-start; position: sticky; top: 16px;">
+          <div class="card" style="margin: 0;">
+            <h3 style="margin-top: 0;">LaTeX Import</h3>
+            <textarea id="mcq_import_text" placeholder="Paste LaTeX block..."></textarea>
+            <button type="button" class="secondary" id="btnImportMCQ" style="margin-top: 8px;">Import → Prefill</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD NUMERIC NONNEG -->
+    <!-- <div id="viewNum" class="card hidden">
+      <h2>Add Numeric Nonnegative Problem</h2>
+
+      <label>Statement (required)</label>
+      <textarea id="num_statement" placeholder="Problem statement..."></textarea>
+
+      <div class="row">
+        <div style="flex: 1; min-width: 260px;">
+          <label>Fields (comma-separated, required)</label>
+            <div id="num_fields">
+  <label style="display: block; margin-bottom: 6px;">
+    <input type="checkbox" value="algebra"> algebra
+  </label>
+  <label style="display: block; margin-bottom: 6px;">
+    <input type="checkbox" value="geometry"> geometry
+  </label>
+  <label style="display: block; margin-bottom: 6px;">
+    <input type="checkbox" value="combinatorics"> combinatorics
+  </label>
+  <label style="display: block;">
+    <input type="checkbox" value="number_theory"> number_theory
+  </label>
+</div>
+
+          <div class="muted">Must match your enum values in <code>problem_field</code>.</div>
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Themes (comma-separated)</label>
+          <input id="num_themes" placeholder="mod, counting" />
+        </div>
+      </div>
+
+      <label>Hints</label>
+        <div id="num_hints_wrap"></div>
+        <div style="margin-top: 8px;">
+        <button type="button" class="secondary" id="btnAddNumHint">Add hint</button>
+    </div>
+
+     <label>Solution pages</label>
+<div id="num_solution_wrap"></div>
+<div style="margin-top: 8px;">
+  <button type="button" class="secondary" id="btnAddNumSolutionPage">Add solution page</button>
+</div>
+
+      <div class="row">
+        <div style="flex: 1; min-width: 260px;">
+          <label>Rating type</label>
+          <select id="num_rating_type">
+            <option value="single">single</option>
+            <option value="range">range</option>
+          </select>
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Single value (0–100)</label>
+          <input id="num_single_value" type="number" min="0" max="100" value="15" />
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Range min / max (0–100)</label>
+          <div class="row">
+            <input id="num_range_min" type="number" min="0" max="100" placeholder="min" />
+            <input id="num_range_max" type="number" min="0" max="100" placeholder="max" />
+          </div>
+        </div>
+      </div>
+
+        <label>Correct value (nonnegative integer, required)</label>
+        <input id="num_correct_value" type="number" min="0" step="1" />
+
+
+      <label>Note (optional)</label>
+      <textarea id="num_note" placeholder="Internal note..."></textarea>
+
+      <div style="margin-top: 12px;">
+        <button id="btnCreateNum">Create Numeric</button>
+      </div>
+    </div> -->
+<div id="viewNum" class="card hidden">
+  <h2>Add Numeric Nonnegative Problem</h2>
+
+  <div class="row" style="align-items: flex-start;">
+    <!-- LEFT: your existing Numeric form -->
+    <div style="flex: 2; min-width: 520px;">
+
+      <label>Statement (required)</label>
+      <textarea id="num_statement" placeholder="Problem statement..."></textarea>
+
+      <div class="row">
+        <div style="flex: 1; min-width: 260px;">
+          <label>Fields (comma-separated, required)</label>
+          <div id="num_fields">
+            <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="algebra"> algebra</label>
+            <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="geometry"> geometry</label>
+            <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="combinatorics"> combinatorics</label>
+            <label style="display:block;"><input type="checkbox" value="number_theory"> number_theory</label>
+          </div>
+          <div class="muted">Must match your enum values in <code>problem_field</code>.</div>
+        </div>
+
+        <div style="flex: 1; min-width: 260px;">
+          <label>Themes (comma-separated)</label>
+          <input id="num_themes" placeholder="mod, counting" />
+        </div>
+      </div>
+
+      <label>Hints</label>
+      <div id="num_hints_wrap"></div>
+      <div style="margin-top: 8px;">
+        <button type="button" class="secondary" id="btnAddNumHint">Add hint</button>
+      </div>
+
+      <label>Solution pages</label>
+      <div id="num_solution_wrap"></div>
+      <div style="margin-top: 8px;">
+        <button type="button" class="secondary" id="btnAddNumSolutionPage">Add solution page</button>
+      </div>
+
+      <div class="row">
+        <div style="flex: 1; min-width: 260px;">
+          <label>Rating type</label>
+          <select id="num_rating_type">
+            <option value="single">single</option>
+            <option value="range">range</option>
+          </select>
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Single value (0–100)</label>
+          <input id="num_single_value" type="number" min="0" max="100" value="15" />
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <label>Range min / max (0–100)</label>
+          <div class="row">
+            <input id="num_range_min" type="number" min="0" max="100" placeholder="min" />
+            <input id="num_range_max" type="number" min="0" max="100" placeholder="max" />
+          </div>
+        </div>
+      </div>
+
+      <label>Correct value (nonnegative integer, required)</label>
+      <input id="num_correct_value" type="number" min="0" step="1" />
+
+      <label>Note (optional)</label>
+      <textarea id="num_note" placeholder="Internal note..."></textarea>
+
+      <div style="margin-top: 12px;">
+        <button id="btnCreateNum">Create Numeric</button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: import panel -->
+    <div style="flex: 1; min-width: 320px; align-self: flex-start; position: sticky; top: 16px;">
+      <div class="card" style="margin: 0;">
+        <h3 style="margin-top: 0;">LaTeX Import</h3>
+        <textarea id="num_import_text" placeholder="Paste LaTeX block..."></textarea>
+        <button type="button" class="secondary" id="btnImportNum" style="margin-top: 8px;">Import → Prefill</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+  </div>
+
+  <!-- Supabase JS (UMD) -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <script>
+    // ============
+    // 1) SET THESE
+    // ============
+    // OLD PROJECT:
+    const SUPABASE_URL = "https://ejociewraeeymlnggabs.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqb2NpZXdyYWVleW1sbmdnYWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MjE5MDMsImV4cCI6MjA3OTQ5NzkwM30.alz8l_ARW1SA12cOL6Ecemx8_lanYf5mIkkhIJtF_mg";
+
+    // NEW PROJECT:
+    //  const SUPABASE_URL = "https://vgywfubjrdvwkovvrant.supabase.co";
+    // const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZneXdmdWJqcmR2d2tvdnZyYW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNDYwMDksImV4cCI6MjA4NjgyMjAwOX0.0a3iqTkJPMapkSCOdCZKrdKgJgAuEIZeWv1gCPMJnsA";
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const el = (id) => document.getElementById(id);
+    const show = (id) => el(id).classList.remove("hidden");
+    const hide = (id) => el(id).classList.add("hidden");
+
+    function flash(message, kind = "ok") {
+      const m = el("msg");
+      m.className = "card";
+      m.classList.remove("hidden");
+      m.innerHTML = `<div class="${kind === "error" ? "error" : "ok"}">${message}</div>`;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+function parseThemesSmart(s) {
+  const raw = (s || "").trim();
+  if (!raw) return [];
+
+  // If user uses semicolons, split on semicolons
+  if (raw.includes(";")) {
+    return raw
+      .split(";")
+      .map(x => x.trim())
+      .filter(Boolean);
+  }
+
+  // Otherwise fallback to commas (old behavior)
+  return raw
+    .split(",")
+    .map(x => x.trim())
+    .filter(Boolean);
+}
+    function parseHintsLines(s) {
+      return (s || "")
+        .split("\n")
+        .map(x => x.trim())
+        .filter(Boolean);
+    }
+
+    function parseChoicesLines(s) {
+      return (s || "")
+        .split("\n")
+        .map(x => x.trim())
+        .filter(Boolean);
+    }
+
+    function nav(viewId) {
+      ["viewAll","viewMCQ","viewNum"].forEach(hide);
+      show(viewId);
+    }
+
+    async function refreshAuthUI() {
+      const { data: { session } } = await sb.auth.getSession();
+
+      if (!session) {
+        hide("appView");
+        show("loginView");
+        return;
+      }
+
+      hide("loginView");
+      show("appView");
+      el("whoami").textContent = session.user.email ?? session.user.id;
+
+      // Check if user is admin (exists in admin_accounts)
+      const { data: adminRow, error } = await sb
+        .from("admin_accounts")
+        .select("id,email,display_name")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        el("adminStatus").innerHTML = `<span class="error">Admin check failed: ${error.message}</span>`;
+        return;
+      }
+
+      if (!adminRow) {
+        el("adminStatus").innerHTML = `<span class="error">Not an admin. (No row in admin_accounts)</span>`;
+      } else {
+        el("adminStatus").textContent = `Admin OK: ${adminRow.display_name ?? adminRow.email}`;
+      }
+    }
+
+    // =========
+    // LOGIN FLOW
+    // =========
+    el("btnLogin").addEventListener("click", async () => {
+      try {
+        const email = el("email").value.trim();
+        const password = el("password").value;
+
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) return flash(error.message, "error");
+
+        flash("Signed in.", "ok");
+        await refreshAuthUI();
+        nav("viewAll");
+        await loadProblems();
+      } catch (e) {
+        flash(String(e), "error");
+      }
+    });
+
+    el("btnSignOut").addEventListener("click", async () => {
+      const { error } = await sb.auth.signOut();
+      if (error) return flash(error.message, "error");
+      flash("Signed out.", "ok");
+      await refreshAuthUI();
+    });
+
+    // =========
+    // NAV
+    // =========
+    el("navAll").addEventListener("click", async () => { nav("viewAll"); await loadProblems(); });
+    el("navMCQ").addEventListener("click", () => nav("viewMCQ"));
+    el("navNum").addEventListener("click", () => nav("viewNum"));
+    el("btnReload").addEventListener("click", loadProblems);
+
+    // =========
+    // LIST
+    // =========
+    async function loadProblems() {
+      const limit = Math.min(Math.max(parseInt(el("listLimit").value || "50", 10), 1), 500);
+      const sort = el("listSort").value;
+
+      let orderCol = "created_at";
+      let ascending = false;
+
+      if (sort === "created_at_asc") { orderCol = "created_at"; ascending = true; }
+      if (sort === "created_at_desc") { orderCol = "created_at"; ascending = false; }
+      if (sort === "integer_id_asc") { orderCol = "integer_id"; ascending = true; }
+      if (sort === "integer_id_desc") { orderCol = "integer_id"; ascending = false; }
+
+      const { data, error } = await sb
+        .from("problems")
+        .select("integer_id,id,problem_type,rating_type,single_value,range_min,range_max,fields,created_at,statement")
+        .order(orderCol, { ascending })
+        .limit(limit);
+
+      if (error) return flash("Load failed: " + error.message, "error");
+
+      const wrap = el("problemsTableWrap");
+      if (!data || data.length === 0) {
+        wrap.innerHTML = `<p class="muted">No problems found.</p>`;
+        return;
+      }
+
+      wrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Type</th>
+              <th>Rating</th>
+              <th>Fields</th>
+              <th>Statement</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(p => {
+              const r = p.rating_type === "single"
+                ? `single: ${p.single_value}`
+                : `range: ${p.range_min}–${p.range_max}`;
+              const fields = Array.isArray(p.fields) ? p.fields.join(", ") : "";
+              const stmt = (p.statement || "").slice(0, 160).replaceAll("<","&lt;").replaceAll(">","&gt;");
+              const created = new Date(p.created_at).toLocaleString();
+              return `
+                <tr>
+                  <td>${p.integer_id}</td>
+                  <td>${p.problem_type}</td>
+                  <td>${r}</td>
+                  <td>${fields}</td>
+                  <td>${stmt}${(p.statement || "").length > 160 ? "…" : ""}</td>
+                  <td>${created}</td>
+                  <td><button class="secondary" onclick="editProblem('${p.id}')">Edit</button></td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // =========
+    // CREATE MCQ
+    // =========
+    el("btnCreateMCQ").addEventListener("click", async () => {
+      const statement = el("mcq_statement").value.trim();
+const fields = Array.from(document.querySelectorAll("#mcq_fields input:checked"))
+  .map(cb => cb.value);
+      const themes = parseThemesSmart(el("mcq_themes").value);
+      const hints = getHintInputs("mcq_hints_wrap");
+    const solutionPages = getTextareaList("mcq_solution_wrap");
+    const solution = solutionPages.length ? solutionPages : null;
+
+      const note = el("mcq_note").value.trim() || null;
+
+      const rating_type = el("mcq_rating_type").value;
+      const single_value = rating_type === "single" ? Number(el("mcq_single_value").value) : null;
+      const range_min = rating_type === "range" ? Number(el("mcq_range_min").value) : null;
+      const range_max = rating_type === "range" ? Number(el("mcq_range_max").value) : null;
+
+      const choices = getChoiceInputs();
+        const correct_choice = el("mcq_correct_choice_select").value;
+
+      if (!statement) return flash("Statement is required.", "error");
+      if (fields.length < 1) return flash("At least one field is required.", "error");
+      if (choices.length < 2) return flash("At least 2 choices required.", "error");
+      if (!correct_choice) return flash("Correct choice required.", "error");
+
+      const payload = {
+        statement,
+        solution,
+        hints,
+        fields,
+        themes,
+        note,
+        problem_type: "mc_single_select",
+        rating_type,
+        single_value,
+        range_min,
+        range_max,
+        choices,
+        correct_choice,
+        correct_value: null
+      };
+
+        const q = sb.from("problems");
+        const op = window.__editingProblemId
+        ? q.update(payload).eq("id", window.__editingProblemId)
+        : q.insert(payload);
+
+        const { data, error } = await op.select("integer_id,id").single();
+
+
+      if (error) return flash("Save failed: " + error.message, "error");
+
+      window.__editingProblemId = null;  // ← ADD THIS LINE
+
+      flash(`MCQ created. integer_id=${data.integer_id}`, "ok");
+      nav("viewAll");
+      await loadProblems();
+    });
+
+    // =========
+    // CREATE NUMERIC
+    // =========
+    el("btnCreateNum").addEventListener("click", async () => {
+      const statement = el("num_statement").value.trim();
+const fields = Array.from(document.querySelectorAll("#num_fields input:checked"))
+  .map(cb => cb.value);
+      const themes = parseThemesSmart(el("num_themes").value);
+        const hints = getHintInputs("num_hints_wrap");
+const solutionPages = getTextareaList("num_solution_wrap");
+const solution = solutionPages.length ? solutionPages : null;
+
+      const note = el("num_note").value.trim() || null;
+
+      const rating_type = el("num_rating_type").value;
+      const single_value = rating_type === "single" ? Number(el("num_single_value").value) : null;
+      const range_min = rating_type === "range" ? Number(el("num_range_min").value) : null;
+      const range_max = rating_type === "range" ? Number(el("num_range_max").value) : null;
+
+      const correct_value = Number(el("num_correct_value").value);
+
+      if (!statement) return flash("Statement is required.", "error");
+      if (fields.length < 1) return flash("At least one field is required.", "error");
+      if (!Number.isFinite(correct_value)) return flash("Correct value is required.", "error");
+
+      const payload = {
+        statement,
+        solution,
+        hints,
+        fields,
+        themes,
+        note,
+        problem_type: "numeric_nonneg",
+        rating_type,
+        single_value,
+        range_min,
+        range_max,
+        correct_value,
+        choices: null,
+        correct_choice: null
+      };
+
+      const q = sb.from("problems");
+        const op = window.__editingProblemId
+        ? q.update(payload).eq("id", window.__editingProblemId)
+        : q.insert(payload);
+
+        const { data, error } = await op.select("integer_id,id").single();
+
+
+      if (error) return flash("Save failed: " + error.message, "error");
+
+      window.__editingProblemId = null;
+
+        flash(`Saved. integer_id=${data.integer_id}`, "ok");
+      nav("viewAll");
+      await loadProblems();
+    });
+
+    function getHintInputs(wrapId) {
+  return Array.from(document.querySelectorAll(`#${wrapId} textarea`))
+    .map(t => t.value.trim())
+    .filter(Boolean);
+}
+
+function addHintBox(wrapId, placeholder) {
+  const wrap = document.getElementById(wrapId);
+  const box = document.createElement("div");
+  box.style.marginTop = "8px";
+  box.innerHTML = `
+    <textarea placeholder="${placeholder}"></textarea>
+    <div style="margin-top:6px;">
+      <button type="button" class="secondary">Remove</button>
+    </div>
+  `;
+  box.querySelector("button").addEventListener("click", () => box.remove());
+  wrap.appendChild(box);
+}
+
+el("btnAddNumHint").addEventListener("click", () => {
+  const n = document.querySelectorAll("#num_hints_wrap textarea").length + 1;
+  addHintBox("num_hints_wrap", `Hint ${n}...`);
+});
+
+el("btnAddMcqHint").addEventListener("click", () => {
+  const n = document.querySelectorAll("#mcq_hints_wrap textarea").length + 1;
+  addHintBox("mcq_hints_wrap", `Hint ${n}...`);
+});
+
+function getChoiceInputs() {
+  return Array.from(document.querySelectorAll("#mcq_choices_wrap input"))
+    .map(i => i.value.trim())
+    .filter(Boolean);
+}
+
+function addChoiceBox(placeholder) {
+  const wrap = document.getElementById("mcq_choices_wrap");
+  const row = document.createElement("div");
+  row.style.marginTop = "8px";
+  row.innerHTML = `
+    <input placeholder="${placeholder}" />
+    <div style="margin-top:6px;">
+      <button type="button" class="secondary">Remove</button>
+    </div>
+  `;
+
+  const input = row.querySelector("input");
+  input.addEventListener("input", refreshCorrectChoiceSelect);
+
+  row.querySelector("button").addEventListener("click", () => {
+    row.remove();
+    refreshCorrectChoiceSelect();
+  });
+
+  wrap.appendChild(row);
+  refreshCorrectChoiceSelect();
+}
+
+
+el("btnAddChoice").addEventListener("click", () => {
+  const n = document.querySelectorAll("#mcq_choices_wrap input").length + 1;
+  addChoiceBox(`Choice ${n}...`);
+});
+
+
+function refreshCorrectChoiceSelect() {
+  const select = document.getElementById("mcq_correct_choice_select");
+  const choices = getChoiceInputs();
+
+  select.innerHTML = "";
+
+  choices.forEach(choice => {
+    const opt = document.createElement("option");
+    opt.value = choice;
+    opt.textContent = choice;
+    select.appendChild(opt);
+  });
+}
+
+
+window.editProblem = async function (problemId) {
+  const { data: p, error } = await sb
+    .from("problems")
+    .select("*")
+    .eq("id", problemId)
+    .single();
+
+  if (error) return flash("Load for edit failed: " + error.message, "error");
+
+  // Go to the correct form
+  if (p.problem_type === "mc_single_select") nav("viewMCQ");
+  else nav("viewNum");
+
+  // Fill common fields
+  if (p.problem_type === "mc_single_select") {
+    el("mcq_statement").value = p.statement ?? "";
+el("mcq_solution_wrap").innerHTML = "";
+(p.solution || []).forEach((_, i) => addTextareaBox("mcq_solution_wrap", `Solution page ${i+1}...`));
+Array.from(document.querySelectorAll("#mcq_solution_wrap textarea"))
+  .forEach((t, i) => t.value = (p.solution || [])[i] || "");
+    el("mcq_note").value = p.note ?? "";
+    el("mcq_themes").value = (p.themes || []).join(", ");
+
+    // fields checkboxes
+    document.querySelectorAll("#mcq_fields input[type=checkbox]").forEach(cb => {
+      cb.checked = (p.fields || []).includes(cb.value);
+    });
+
+    // hints
+    el("mcq_hints_wrap").innerHTML = "";
+    (p.hints || []).forEach((h, i) => addHintBox("mcq_hints_wrap", `Hint ${i+1}...`));
+    // set values after creation
+    Array.from(document.querySelectorAll("#mcq_hints_wrap textarea")).forEach((t, i) => t.value = p.hints[i] || "");
+
+    // choices
+    document.getElementById("mcq_choices_wrap").innerHTML = "";
+    (p.choices || []).forEach((c, i) => addChoiceBox(`Choice ${i+1}...`));
+    Array.from(document.querySelectorAll("#mcq_choices_wrap input")).forEach((inp, i) => inp.value = p.choices[i] || "");
+    refreshCorrectChoiceSelect();
+    el("mcq_correct_choice_select").value = p.correct_choice ?? "";
+
+    // rating
+    el("mcq_rating_type").value = p.rating_type;
+    el("mcq_single_value").value = p.single_value ?? 15;
+    el("mcq_range_min").value = p.range_min ?? "";
+    el("mcq_range_max").value = p.range_max ?? "";
+
+  } else {
+    el("num_statement").value = p.statement ?? "";
+el("num_solution_wrap").innerHTML = "";
+(p.solution || []).forEach((_, i) => addTextareaBox("num_solution_wrap", `Solution page ${i+1}...`));
+Array.from(document.querySelectorAll("#num_solution_wrap textarea"))
+  .forEach((t, i) => t.value = (p.solution || [])[i] || "");
+
+  el("num_note").value = p.note ?? "";
+    el("num_themes").value = (p.themes || []).join(", ");
+    el("num_correct_value").value = p.correct_value ?? "";
+
+    document.querySelectorAll("#num_fields input[type=checkbox]").forEach(cb => {
+      cb.checked = (p.fields || []).includes(cb.value);
+    });
+
+    el("num_hints_wrap").innerHTML = "";
+    (p.hints || []).forEach((h, i) => addHintBox("num_hints_wrap", `Hint ${i+1}...`));
+    Array.from(document.querySelectorAll("#num_hints_wrap textarea")).forEach((t, i) => t.value = p.hints[i] || "");
+
+    el("num_rating_type").value = p.rating_type;
+    el("num_single_value").value = p.single_value ?? 15;
+    el("num_range_min").value = p.range_min ?? "";
+    el("num_range_max").value = p.range_max ?? "";
+  }
+
+  // store which problem we're editing
+  window.__editingProblemId = p.id;
+  flash(`Editing problem integer_id=${p.integer_id}`, "ok");
+};
+
+
+function getTextareaList(wrapId) {
+  return Array.from(document.querySelectorAll(`#${wrapId} textarea`))
+    .map(t => t.value.trim())
+    .filter(Boolean);
+}
+
+function addTextareaBox(wrapId, placeholder) {
+  const wrap = document.getElementById(wrapId);
+  const box = document.createElement("div");
+  box.style.marginTop = "8px";
+  box.innerHTML = `
+    <textarea placeholder="${placeholder}"></textarea>
+    <div style="margin-top:6px;">
+      <button type="button" class="secondary">Remove</button>
+    </div>
+  `;
+  box.querySelector("button").addEventListener("click", () => box.remove());
+  wrap.appendChild(box);
+}
+
+el("btnAddMcqSolutionPage").addEventListener("click", () => {
+  const n = document.querySelectorAll("#mcq_solution_wrap textarea").length + 1;
+  addTextareaBox("mcq_solution_wrap", `Solution page ${n}...`);
+});
+
+el("btnAddNumSolutionPage").addEventListener("click", () => {
+  const n = document.querySelectorAll("#num_solution_wrap textarea").length + 1;
+  addTextareaBox("num_solution_wrap", `Solution page ${n}...`);
+});
+
+function normalizeNewlines(s) {
+  return (s || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+}
+
+
+
+
+
+function extractBetween(text, startRe, endRe) {
+  const s = normalizeNewlines(text);
+  const start = startRe.exec(s);
+  if (!start) return null;
+
+  const afterStart = start.index + start[0].length;
+  const rest = s.slice(afterStart);
+
+  const end = endRe.exec(rest);
+  if (!end) return null;
+
+  return rest.slice(0, end.index);
+}
+
+function detectFieldFromEnvPrefix(prefix) {
+  const p = (prefix || "").toUpperCase();
+  if (p === "ALG") return "algebra";
+  if (p === "GEO") return "geometry";
+  if (p === "COMB") return "combinatorics";
+  if (p === "NT") return "number_theory";
+  return null;
+}
+
+function parseLatexProblem(raw, { splitSolutionPages = true } = {}) {
+  const s = normalizeNewlines(raw).trim();
+
+  // TAGS line: "% TAGS: A, B, C"
+  const tagMatch = s.match(/^\s*%\s*TAGS\s*:\s*(.+)\s*$/mi);
+  const tags = tagMatch
+    ? tagMatch[1].split(",").map(x => x.trim()).filter(Boolean)
+    : [];
+
+  // Environment: \begin{NTproblem} / \begin{ALGproblem} / etc.
+  const envMatch = s.match(/\\begin\{([A-Za-z]+)problem\}/);
+  const envPrefix = envMatch ? envMatch[1] : null;
+
+  // Statement: after the \begin{Xproblem} line, until \begin{hints} or \begin{solution} or \begin{note}
+  let statement = "";
+  if (envMatch) {
+    const beginPos = s.indexOf(envMatch[0]);
+    const lineEnd = s.indexOf("\n", beginPos);
+    const start = lineEnd === -1 ? (beginPos + envMatch[0].length) : (lineEnd + 1);
+
+    const candidates = [
+      s.search(/\\begin\{hints\}/),
+      s.search(/\\begin\{solution\}/),
+      s.search(/\\begin\{note\}/),
+      s.search(/\\end\{[A-Za-z]+problem\}/),
+    ].filter(i => i !== -1).sort((a,b) => a-b);
+
+    const end = candidates.length ? candidates[0] : s.length;
+    statement = s.slice(start, end).trim();
+  } else {
+    // fallback: just take everything up to hints
+    const end = s.search(/\\begin\{hints\}/);
+    statement = (end === -1 ? s : s.slice(0, end)).trim();
+  }
+
+  // Hints block
+  const hintsBlock = extractBetween(s, /\\begin\{hints\}/, /\\end\{hints\}/);
+  let hints = [];
+  if (hintsBlock) {
+    // split on "\hint"
+    hints = hintsBlock
+      .split(/\\hint\b/g)
+      .map(x => x.trim())
+      .filter(Boolean);
+  }
+
+  // Solution block
+  const solBlock = extractBetween(s, /\\begin\{solution\}/, /\\end\{solution\}/);
+  let solutionPages = [];
+  if (solBlock) {
+    const solText = solBlock.trim();
+    if (!solText) {
+      solutionPages = [];
+    } else if (splitSolutionPages) {
+      solutionPages = solText
+        .split(/%%\s*NEW\s*PAGE\s*%%/i)
+        .map(x => x.trim())
+        .filter(Boolean);
+    } else {
+      solutionPages = [solText];
+    }
+  }
+
+  // Note block
+  const noteBlock = extractBetween(s, /\\begin\{note\}/, /\\end\{note\}/);
+  const note = noteBlock ? noteBlock.trim() : "";
+
+  return { statement, hints, solutionPages, note, tags, envPrefix };
+}
+
+function setFieldCheckboxes(wrapSelector, fieldValueOrNull) {
+  if (!fieldValueOrNull) return;
+  document.querySelectorAll(`${wrapSelector} input[type=checkbox]`).forEach(cb => {
+    cb.checked = (cb.value === fieldValueOrNull);
+  });
+}
+
+function fillHints(wrapId, hintsArr) {
+  const wrap = document.getElementById(wrapId);
+  wrap.innerHTML = "";
+  (hintsArr || []).forEach((_, i) => addHintBox(wrapId, `Hint ${i+1}...`));
+  Array.from(document.querySelectorAll(`#${wrapId} textarea`))
+    .forEach((t, i) => t.value = (hintsArr || [])[i] || "");
+}
+
+function fillSolutionPages(wrapId, pagesArr) {
+  const wrap = document.getElementById(wrapId);
+  wrap.innerHTML = "";
+  (pagesArr || []).forEach((_, i) => addTextareaBox(wrapId, `Solution page ${i+1}...`));
+  Array.from(document.querySelectorAll(`#${wrapId} textarea`))
+    .forEach((t, i) => t.value = (pagesArr || [])[i] || "");
+}
+
+// MCQ import
+function safeChecked(id, fallback = true) {
+  const node = document.getElementById(id);
+  return node ? !!node.checked : fallback;
+}
+
+el("btnImportMCQ").addEventListener("click", () => {
+  const raw = el("mcq_import_text")?.value || "";
+  const split = safeChecked("mcq_import_split_pages", true); // works even if checkbox doesn't exist
+
+  const p = parseLatexProblem(raw, { splitSolutionPages: split });
+
+  if (!p.statement) return flash("Import failed: could not detect a statement.", "error");
+
+  // Fill ONLY these:
+  el("mcq_statement").value = p.statement;
+  el("mcq_themes").value = (p.tags || []).join(", ");
+  if (p.note) el("mcq_note").value = p.note;
+
+  fillHints("mcq_hints_wrap", p.hints || []);
+  fillSolutionPages("mcq_solution_wrap", p.solutionPages || []);
+
+  const detected = detectFieldFromEnvPrefix(p.envPrefix);
+  if (detected) setFieldCheckboxes("#mcq_fields", detected);
+
+  // Do NOT modify choices / correct choice.
+  flash("Imported: statement/hints/solution/note/themes filled. Choices unchanged.", "ok");
+});
+
+
+// Numeric import
+el("btnImportNum").addEventListener("click", () => {
+  const raw = el("num_import_text")?.value || "";
+  const split = safeChecked("num_import_split_pages", true); // OK even if checkbox not present
+
+  const p = parseLatexProblem(raw, { splitSolutionPages: split });
+
+  if (!p.statement) return flash("Import failed: could not detect a statement.", "error");
+
+  el("num_statement").value = p.statement;
+  el("num_themes").value = (p.tags || []).join(", ");
+  if (p.note) el("num_note").value = p.note;
+
+  fillHints("num_hints_wrap", p.hints || []);
+  fillSolutionPages("num_solution_wrap", p.solutionPages || []);
+
+  const detected = detectFieldFromEnvPrefix(p.envPrefix);
+  if (detected) setFieldCheckboxes("#num_fields", detected);
+
+  flash("Imported: statement/hints/solution/note/themes filled.", "ok");
+});
+
+
+
+    // =========
+    // BOOT
+    // =========
+    sb.auth.onAuthStateChange((_event, _session) => {
+      refreshAuthUI();
+    });
+
+    (async function boot() {
+      await refreshAuthUI();
+      // default screen after auth
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) { nav("viewAll"); await loadProblems(); }
+    })();
+
+    addHintBox("num_hints_wrap", "Hint 1...");
+    addHintBox("mcq_hints_wrap", "Hint 1...");
+
+    addChoiceBox("Choice 1...");
+    addChoiceBox("Choice 2...");
+
+    addTextareaBox("mcq_solution_wrap", "Solution page 1...");
+    addTextareaBox("num_solution_wrap", "Solution page 1...");
+
+
+  </script>
+</body>
+</html>
