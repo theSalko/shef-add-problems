@@ -1,1160 +1,1887 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shef Admin</title>
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; max-width: 980px; }
-    .row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 12px 0; }
-    input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
-    textarea { min-height: 120px; }
-    button { padding: 10px 14px; border: 1px solid #333; border-radius: 10px; background: #111; color: #fff; cursor: pointer; }
-    button.secondary { background: #fff; color: #111; border-color: #bbb; }
-    .hidden { display: none; }
-    .muted { color: #666; font-size: 13px; }
-    .error { color: #b00020; }
-    .ok { color: #0a7a2f; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border-bottom: 1px solid #eee; text-align: left; padding: 10px; vertical-align: top; }
-    code { background: #f6f6f6; padding: 2px 6px; border-radius: 6px; }
-    input[type="checkbox"] {
-  width: auto;
-}
-
-  </style>
-</head>
-<body>
-  <h1>Shef Admin</h1>
-  <p class="muted">Local admin panel (Supabase)</p>
-
-  <div id="msg" class="card hidden"></div>
-
-  <!-- LOGIN -->
-  <div id="loginView" class="card">
-    <h2>Login</h2>
-    <div class="row">
-      <div style="flex: 1; min-width: 260px;">
-        <label>Email</label>
-        <input id="email" type="email" placeholder="you@example.com" />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Shef Math · Problem desk</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" />
+    <style>
+      :root {
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: #26382f;
+        background: #f5f6f2;
+        font-synthesis: none;
+        --ink: #223c2f;
+        --muted: #758078;
+        --line: #e1e6dd;
+        --green: #28694c;
+        --pale: #edf4ed;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 9px 13px;
+        background: white;
+        color: var(--ink);
+        font-weight: 550;
+        font-size: 13px;
+      }
+      button:hover {
+        background: #f0f4ec;
+      }
+      button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      button.primary {
+        background: var(--green);
+        border-color: var(--green);
+        color: white;
+      }
+      button.primary:hover {
+        background: #20563e;
+      }
+      button.quiet {
+        border-color: transparent;
+        background: transparent;
+        color: var(--muted);
+      }
+      button.small {
+        padding: 5px 8px;
+        font-size: 12px;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        border: 1px solid #d8dfd5;
+        border-radius: 7px;
+        padding: 10px;
+        background: white;
+        color: #26382f;
+        font-size: 14px;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: 2px solid #9bbea6;
+        outline-offset: 1px;
+      }
+      input[type="checkbox"],
+      input[type="radio"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--green);
+        flex: none;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 95px;
+        line-height: 1.6;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 13px;
+      }
+      textarea[readonly] {
+        background: #f7f8f5;
+        color: #718076;
+      }
+      label,
+      .label {
+        display: block;
+        font-size: 12px;
+        font-weight: 650;
+        margin-bottom: 7px;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: 19px;
+        letter-spacing: -0.6px;
+      }
+      h2 {
+        font-size: 23px;
+        letter-spacing: -0.8px;
+      }
+      h3 {
+        font-size: 14px;
+      }
+      small,
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .hidden,
+      [hidden] {
+        display: none !important;
+      }
+      .topbar {
+        height: 77px;
+        border-bottom: 1px solid var(--line);
+        background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 0 34px;
+      }
+      .brandmark {
+        height: 34px;
+        width: 34px;
+        border-radius: 9px;
+        background: var(--ink);
+        color: white;
+        font:
+          italic 25px Georgia,
+          serif;
+        display: grid;
+        place-items: center;
+      }
+      .badge {
+        font-size: 10px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border: 1px solid #dbe5d9;
+        border-radius: 5px;
+        background: #f2f7ee;
+        color: #57724f;
+        padding: 5px 7px;
+        font-weight: 700;
+      }
+      .account {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .shell {
+        max-width: 1540px;
+        margin: auto;
+        padding: 32px;
+      }
+      .intro {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+      .intro p {
+        margin-top: 7px;
+      }
+      .actions,
+      .inline {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: wrap;
+      }
+      .notice {
+        max-width: 1476px;
+        margin: 18px auto 0;
+        padding: 12px 16px;
+        background: #eaf4e9;
+        color: #285c37;
+        border: 1px solid #d2e5d0;
+        border-radius: 8px;
+        font-size: 13px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .notice.error {
+        background: #fff0eb;
+        color: #943e2e;
+        border-color: #efd4cb;
+      }
+      .login {
+        width: min(410px, calc(100% - 32px));
+        margin: 85px auto;
+        background: white;
+        border: 1px solid var(--line);
+        padding: 32px;
+        border-radius: 12px;
+      }
+      .login h2 {
+        margin-bottom: 9px;
+      }
+      .login p {
+        margin-bottom: 24px;
+      }
+      .login label {
+        margin-top: 17px;
+      }
+      .login-divider {
+        margin: 22px 0 0;
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .login button {
+        margin-top: 22px;
+        width: 100%;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: 355px minmax(0, 1fr);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: clip;
+        background: white;
+        min-height: 640px;
+      }
+      .catalogue {
+        border-right: 1px solid var(--line);
+        background: #fcfdfb;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .catalogue-head {
+        padding: 20px 18px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .catalogue-head input {
+        margin: 12px 0 9px;
+      }
+      .filters {
+        display: flex;
+        gap: 7px;
+      }
+      .filters select {
+        font-size: 12px;
+        padding: 8px;
+        min-width: 0;
+      }
+      .list-tools {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 13px;
+      }
+      .check-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .problem-list {
+        max-height: 685px;
+        overflow: auto;
+      }
+      .problem-row {
+        display: flex;
+        gap: 11px;
+        align-items: flex-start;
+        border-bottom: 1px solid #edf0e9;
+        padding: 17px 18px;
+        position: relative;
+      }
+      .problem-row.active {
+        background: #edf4ed;
+        box-shadow: inset 3px 0 var(--green);
+      }
+      .problem-row > input {
+        margin-top: 3px;
+      }
+      .problem-open {
+        text-align: left;
+        border: 0;
+        background: none;
+        padding: 0;
+        flex: 1;
+        min-width: 0;
+        font-weight: 400;
+      }
+      .problem-open:hover {
+        background: none;
+      }
+      .problem-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 10px;
+        color: var(--muted);
+        margin-bottom: 7px;
+        text-transform: uppercase;
+        letter-spacing: 0.45px;
+      }
+      .problem-number {
+        font-weight: 700;
+        color: var(--green);
+        font-size: 11px;
+      }
+      .problem-title {
+        font-size: 13px;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+      }
+      .list-footer {
+        padding: 12px 16px;
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid var(--line);
+      }
+      .empty {
+        padding: 70px 28px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .empty-symbol {
+        font:
+          italic 48px Georgia,
+          serif;
+        color: #b6c6b2;
+        margin-bottom: 14px;
+      }
+      .empty h3 {
+        color: var(--ink);
+        margin-bottom: 7px;
+      }
+      .editor {
+        min-width: 0;
+      }
+      .editor-head {
+        padding: 24px 27px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .editor-head h2 {
+        font-size: 21px;
+        margin-bottom: 6px;
+      }
+      .editor-head .actions {
+        margin-left: auto;
+      }
+      .identity {
+        font-size: 10px;
+        color: #849086;
+        overflow-wrap: anywhere;
+      }
+      .editor-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.85fr);
+        min-height: 580px;
+      }
+      .form-body {
+        padding: 25px 27px;
+      }
+      .form-section {
+        margin-bottom: 25px;
+      }
+      .form-section:last-child {
+        margin-bottom: 0;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 13px;
+      }
+      .three {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+      .field-checks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px 14px;
+      }
+      .field-checks label {
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        margin: 0;
+      }
+      .section-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 9px;
+      }
+      .repeat-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+        margin: 8px 0;
+      }
+      .repeat-row textarea,
+      .repeat-row input[type="text"] {
+        flex: 1;
+        min-width: 0;
+      }
+      .repeat-row input[type="radio"] {
+        margin-top: 12px;
+      }
+      .repeat-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .repeat-controls button {
+        padding: 4px 7px;
+        color: var(--muted);
+      }
+      .repeat-row textarea {
+        min-height: 110px;
+      }
+      #choices textarea {
+        min-height: 64px;
+      }
+      #themes .repeat-controls,
+      #choices .repeat-controls {
+        flex-direction: row;
+        padding-top: 7px;
+      }
+      .repeat-row .theme-input {
+        font-family: inherit;
+      }
+      .row-label {
+        font-size: 10px;
+        color: var(--muted);
+        padding: 10px 0;
+        min-width: 14px;
+      }
+      details {
+        border-top: 1px solid var(--line);
+        padding-top: 17px;
+        margin-top: 18px;
+      }
+      summary {
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+        margin-bottom: 12px;
+      }
+      .preview-panel {
+        background: #fafbf7;
+        border-left: 1px solid var(--line);
+        padding: 25px 23px;
+        min-width: 0;
+      }
+      .eyebrow {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.3px;
+        color: #819078;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+      }
+      .preview {
+        font:
+          16px/1.8 Georgia,
+          "Times New Roman",
+          serif;
+        overflow-wrap: anywhere;
+      }
+      .preview-part {
+        white-space: pre-wrap;
+      }
+      .preview img {
+        max-width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        display: block;
+        margin: 12px auto;
+      }
+      .preview h3 {
+        font:
+          600 11px/1.4 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: #7c8874;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        margin: 24px 0 10px;
+      }
+      .preview-choice {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 8px 12px;
+        margin: 9px 0;
+        font-size: 15px;
+      }
+      .preview-choice.correct {
+        border-color: #9aba9c;
+        background: #edf4e9;
+      }
+      .preview .katex-display {
+        overflow: auto;
+        padding: 5px 0;
+        margin: 14px 0;
+      }
+      .preview-note {
+        font:
+          12px/1.5 -apple-system,
+          sans-serif;
+        color: #8b7354;
+        background: #f7f0e3;
+        padding: 10px;
+        margin: 12px 0;
+      }
+      .savebar {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        background: #fff;
+        border-top: 1px solid var(--line);
+        padding: 14px 27px;
+        z-index: 2;
+      }
+      .save-status {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .save-status.changed {
+        color: #947044;
+      }
+      .footer-note {
+        text-align: center;
+        margin: 22px 0 0;
+        font-size: 11px;
+        color: #8a9388;
+      }
+      .import-progress {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      @media (min-width: 1400px) {
+        .form-body {
+          padding: 27px 32px;
+        }
+      }
+      @media (max-width: 1150px) {
+        .workspace {
+          grid-template-columns: 310px minmax(0, 1fr);
+        }
+        .editor-grid {
+          grid-template-columns: 1fr;
+        }
+        .preview-panel {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .preview {
+          max-width: 650px;
+        }
+        .shell {
+          padding: 24px;
+        }
+      }
+      @media (max-width: 740px) {
+        .topbar {
+          padding: 0 18px;
+          height: 66px;
+        }
+        .topbar h1 {
+          font-size: 16px;
+        }
+        .account span {
+          display: none;
+        }
+        .shell {
+          padding: 21px 14px;
+        }
+        .intro {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .intro h2 {
+          font-size: 24px;
+        }
+        .workspace {
+          display: block;
+        }
+        .catalogue {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .problem-list {
+          max-height: 245px;
+        }
+        .editor-head,
+        .form-body,
+        .preview-panel {
+          padding: 22px 18px;
+        }
+        .savebar {
+          padding: 14px 18px;
+        }
+        .notice {
+          margin: 12px 14px 0;
+        }
+        .editor-head {
+          flex-wrap: wrap;
+        }
+        .editor-head .actions {
+          margin-left: 0;
+        }
+        .three {
+          grid-template-columns: 1fr 1fr;
+        }
+        .account {
+          gap: 3px;
+        }
+        .topbar .badge {
+          font-size: 9px;
+        }
+        .two {
+          gap: 9px;
+        }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        button {
+          transition: background 0.12s ease;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brandmark" aria-hidden="true">s</div>
+      <h1>Shef Math</h1>
+      <span class="badge">Dev admin</span>
+      <div class="account hidden" id="account">
+        <span class="muted" id="whoami"></span><button id="signOut" class="quiet">Sign out</button>
       </div>
-      <div style="flex: 1; min-width: 260px;">
-        <label>Password</label>
-        <input id="password" type="password" placeholder="••••••••" />
-      </div>
-    </div>
-    <div style="margin-top: 12px;">
-      <button id="btnLogin">Sign in</button>
-    </div>
-
-    <hr style="margin: 16px 0; border: none; border-top: 1px solid #eee;" />
-
-    <p class="muted">
-      Put your keys in the script at the bottom:
-      <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>
-    </p>
-  </div>
-
-  <!-- APP -->
-  <div id="appView" class="hidden">
-    <div class="card">
-      <div class="row" style="align-items: center;">
-        <div style="flex: 1;">
-          <div><strong>Signed in as:</strong> <span id="whoami"></span></div>
-          <div class="muted" id="adminStatus"></div>
-        </div>
+    </header>
+    <div id="message" class="notice hidden" role="status" aria-live="polite"></div>
+    <section id="loginView" class="login">
+      <h2>Problem desk</h2>
+      <p class="muted">A small space for quick corrections.</p>
+      <button id="googleSignIn" type="button" class="primary" style="margin-top: 0">
+        Continue with Google
+      </button>
+      <div class="login-divider">or use email and password</div>
+      <form id="loginForm">
+        <label for="email">Email</label
+        ><input id="email" type="email" autocomplete="username" required /><label for="password"
+          >Password</label
+        ><input id="password" type="password" autocomplete="current-password" required /><button
+          id="signIn"
+          class="primary"
+        >
+          Sign in
+        </button>
+      </form>
+    </section>
+    <main id="appView" class="shell hidden">
+      <div class="intro">
         <div>
-          <button class="secondary" id="btnSignOut">Sign out</button>
+          <h2>Problem desk</h2>
+          <p class="muted">Find it. Fix it. Save to Dev.</p>
+        </div>
+        <div class="actions">
+          <button id="importButton">Import JSON</button
+          ><input id="importFile" type="file" accept=".json,application/json" hidden /><button
+            id="exportSelected"
+            disabled
+          >
+            Export selected</button
+          ><button id="addProblem" class="primary">+ New problem</button>
         </div>
       </div>
-    </div>
-
-    <div class="card">
-      <h2>Menu</h2>
-      <div class="row">
-        <button id="navAll">See All Problems</button>
-        <button id="navMCQ">Add MCQ Problem</button>
-        <button id="navNum">Add Numeric Nonnegative Problem</button>
-      </div>
-    </div>
-
-    <!-- SEE ALL -->
-    <div id="viewAll" class="card hidden">
-      <h2>All Problems</h2>
-      <div class="row">
-        <div style="flex: 1; min-width: 260px;">
-          <label>Limit</label>
-          <input id="listLimit" type="number" value="50" min="1" max="500" />
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <label>Sort</label>
-          <select id="listSort">
-            <option value="created_at_desc">Created (newest)</option>
-            <option value="created_at_asc">Created (oldest)</option>
-            <option value="integer_id_desc">Integer ID (desc)</option>
-            <option value="integer_id_asc">Integer ID (asc)</option>
-          </select>
-        </div>
-        <div style="align-self: end;">
-          <button id="btnReload">Reload</button>
-        </div>
-      </div>
-
-      <div id="problemsTableWrap" style="margin-top: 12px;"></div>
-    </div>
-
-    <!-- ADD MCQ -->
-    <!-- <div id="viewMCQ" class="card hidden">
-      <h2>Add MCQ Problem</h2>
-
-      <label>Statement (required)</label>
-      <textarea id="mcq_statement" placeholder="Problem statement..."></textarea>
-
-      <div class="row">
-        <div style="flex: 1; min-width: 260px;">
-          <label>Fields (comma-separated, required)</label>
-            <div id="mcq_fields">
-  <label style="display: block; margin-bottom: 6px;">
-    <input type="checkbox" value="algebra"> algebra
-  </label>
-  <label style="display: block; margin-bottom: 6px;">
-    <input type="checkbox" value="geometry"> geometry
-  </label>
-  <label style="display: block; margin-bottom: 6px;">
-    <input type="checkbox" value="combinatorics"> combinatorics
-  </label>
-  <label style="display: block;">
-    <input type="checkbox" value="number_theory"> number_theory
-  </label>
-</div>
-
-
-
-          <div class="muted">Must match your enum values in <code>problem_field</code>.</div>
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <label>Themes (comma-separated)</label>
-          <input id="mcq_themes" placeholder="ineq, angles" />
-        </div>
-      </div>
-
-      <label>Hints</label>
-        <div id="mcq_hints_wrap"></div>
-        <div style="margin-top: 8px;">
-        <button type="button" class="secondary" id="btnAddMcqHint">Add hint</button>
-        </div>
-
-     <label>Solution pages</label>
-<div id="mcq_solution_wrap"></div>
-<div style="margin-top: 8px;">
-  <button type="button" class="secondary" id="btnAddMcqSolutionPage">Add solution page</button>
-</div>
-
-      <div class="row">
-        <div style="flex: 1; min-width: 260px;">
-          <label>Rating type</label>
-          <select id="mcq_rating_type">
-            <option value="single">single</option>
-            <option value="range">range</option>
-          </select>
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <label>Single value (0–100)</label>
-          <input id="mcq_single_value" type="number" min="0" max="100" value="15" />
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <label>Range min / max (0–100)</label>
-          <div class="row">
-            <input id="mcq_range_min" type="number" min="0" max="100" placeholder="min" />
-            <input id="mcq_range_max" type="number" min="0" max="100" placeholder="max" />
-          </div>
-        </div>
-      </div>
-
-      <label>Choices (at least 2)</label>
-        <div id="mcq_choices_wrap"></div>
-        <div style="margin-top: 8px;">
-        <button type="button" class="secondary" id="btnAddChoice">Add choice</button>
-        </div>
-
-      <label>Correct choice</label>
-        <select id="mcq_correct_choice_select"></select>
-
-      <label>Note (optional)</label>
-      <textarea id="mcq_note" placeholder="Internal note..."></textarea>
-
-      <div style="margin-top: 12px;">
-        <button id="btnCreateMCQ">Create MCQ</button>
-      </div>
-    </div> -->
-    <div id="viewMCQ" class="card hidden">
-      <h2>Add MCQ Problem</h2>
-
-      <div class="row" style="align-items: flex-start;">
-        <!-- LEFT: your existing MCQ form -->
-        <div style="flex: 2; min-width: 520px;">
-
-          <label>Statement (required)</label>
-          <textarea id="mcq_statement" placeholder="Problem statement..."></textarea>
-
-          <!-- KEEP ALL YOUR EXISTING MCQ CONTENT BELOW EXACTLY THE SAME -->
-          <div class="row">
-            <div style="flex: 1; min-width: 260px;">
-              <label>Fields (comma-separated, required)</label>
-              <div id="mcq_fields">
-                <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="algebra"> algebra</label>
-                <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="geometry"> geometry</label>
-                <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="combinatorics"> combinatorics</label>
-                <label style="display:block;"><input type="checkbox" value="number_theory"> number_theory</label>
-              </div>
-              <div class="muted">Must match your enum values in <code>problem_field</code>.</div>
+      <div class="workspace">
+        <aside class="catalogue" aria-label="Problem catalogue">
+          <div class="catalogue-head">
+            <div class="inline">
+              <h3>All problems</h3>
+              <span class="muted" id="totalCount"></span
+              ><button id="reload" class="quiet small" style="margin-left: auto">Reload</button>
             </div>
-
-            <div style="flex: 1; min-width: 260px;">
-              <label>Themes (comma-separated)</label>
-              <input id="mcq_themes" placeholder="ineq, angles" />
-            </div>
-          </div>
-
-          <label>Hints</label>
-          <div id="mcq_hints_wrap"></div>
-          <div style="margin-top: 8px;">
-            <button type="button" class="secondary" id="btnAddMcqHint">Add hint</button>
-          </div>
-
-          <label>Solution pages</label>
-          <div id="mcq_solution_wrap"></div>
-          <div style="margin-top: 8px;">
-            <button type="button" class="secondary" id="btnAddMcqSolutionPage">Add solution page</button>
-          </div>
-
-          <div class="row">
-            <div style="flex: 1; min-width: 260px;">
-              <label>Rating type</label>
-              <select id="mcq_rating_type">
-                <option value="single">single</option>
-                <option value="range">range</option>
+            <input
+              id="search"
+              type="search"
+              placeholder="Search text, #ID or reference…"
+              aria-label="Search problems"
+            />
+            <div class="filters">
+              <select id="filterType" aria-label="Filter problem type">
+                <option value="">All types</option>
+                <option value="mc_single_select">Multiple choice</option>
+                <option value="numeric_nonneg">Numeric</option></select
+              ><select id="filterField" aria-label="Filter field">
+                <option value="">All fields</option>
+                <option value="algebra">Algebra</option>
+                <option value="geometry">Geometry</option>
+                <option value="combinatorics">Combinatorics</option>
+                <option value="number_theory">Number theory</option>
+                <option value="Unknown">Unknown</option></select
+              ><select id="filterQuality" aria-label="Filter quality">
+                <option value="">Quality</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
               </select>
             </div>
-            <div style="flex: 1; min-width: 260px;">
-              <label>Single value (0–100)</label>
-              <input id="mcq_single_value" type="number" min="0" max="100" value="15" />
+            <div class="list-tools">
+              <label class="check-label"><input id="selectPage" type="checkbox" />Select page</label
+              ><button class="quiet small" id="exportFiltered">Export filtered</button>
             </div>
-            <div style="flex: 1; min-width: 260px;">
-              <label>Range min / max (0–100)</label>
-              <div class="row">
-                <input id="mcq_range_min" type="number" min="0" max="100" placeholder="min" />
-                <input id="mcq_range_max" type="number" min="0" max="100" placeholder="max" />
+          </div>
+          <div id="problemList" class="problem-list"></div>
+          <div class="list-footer">
+            <span class="muted" id="pageInfo"></span>
+            <div class="inline">
+              <button class="small" id="previous" aria-label="Previous page">←</button
+              ><button class="small" id="next" aria-label="Next page">→</button>
+            </div>
+          </div>
+        </aside>
+        <section class="editor" aria-label="Problem editor">
+          <div id="emptyEditor" class="empty">
+            <div class="empty-symbol" aria-hidden="true">x²</div>
+            <h3>One small correction at a time.</h3>
+            <p class="muted">Choose a problem to get started.</p>
+          </div>
+          <form id="editorForm" class="hidden" novalidate>
+            <fieldset id="editorFields" style="border: 0; padding: 0; margin: 0; min-width: 0">
+              <div class="editor-head">
+                <div>
+                  <h2 id="editorTitle">Problem</h2>
+                  <div id="identity" class="identity"></div>
+                </div>
+                <div class="actions">
+                  <button id="exportCurrent" type="button" class="small">Export to CMS</button
+                  ><button id="closeEditor" type="button" class="quiet small">Close</button>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <label>Choices (at least 2)</label>
-          <div id="mcq_choices_wrap"></div>
-          <div style="margin-top: 8px;">
-            <button type="button" class="secondary" id="btnAddChoice">Add choice</button>
-          </div>
-
-          <label>Correct choice</label>
-          <select id="mcq_correct_choice_select"></select>
-
-          <label>Note (optional)</label>
-          <textarea id="mcq_note" placeholder="Internal note..."></textarea>
-
-          <div style="margin-top: 12px;">
-            <button id="btnCreateMCQ">Create MCQ</button>
-          </div>
-
-        </div>
-
-        <!-- RIGHT: import panel -->
-        <div style="flex: 1; min-width: 320px; align-self: flex-start; position: sticky; top: 16px;">
-          <div class="card" style="margin: 0;">
-            <h3 style="margin-top: 0;">LaTeX Import</h3>
-            <textarea id="mcq_import_text" placeholder="Paste LaTeX block..."></textarea>
-            <button type="button" class="secondary" id="btnImportMCQ" style="margin-top: 8px;">Import → Prefill</button>
-          </div>
-        </div>
+              <div class="editor-grid">
+                <div class="form-body">
+                  <div class="form-section two">
+                    <div>
+                      <label for="problemType">Answer type</label
+                      ><select id="problemType">
+                        <option value="mc_single_select">Multiple choice</option>
+                        <option value="numeric_nonneg">Nonnegative integer</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label for="quality">Quality</label
+                      ><select id="quality">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-section">
+                    <label for="statement">Statement</label
+                    ><textarea
+                      id="statement"
+                      rows="7"
+                      placeholder="Problem text, with $math$…"
+                    ></textarea>
+                  </div>
+                  <div id="mcqSection" class="form-section">
+                    <div class="section-heading">
+                      <label style="margin: 0">Choices · select the correct answer</label
+                      ><button type="button" id="addChoice" class="quiet small">+ Choice</button>
+                    </div>
+                    <div id="choices"></div>
+                  </div>
+                  <div id="numericSection" class="form-section hidden">
+                    <label for="correctValue">Correct answer</label
+                    ><input
+                      id="correctValue"
+                      type="number"
+                      min="0"
+                      max="2147483647"
+                      step="1"
+                      placeholder="Required, including zero"
+                    />
+                  </div>
+                  <div class="form-section">
+                    <label>Fields</label>
+                    <div id="fields" class="field-checks"></div>
+                  </div>
+                  <div class="form-section">
+                    <div class="section-heading">
+                      <label style="margin: 0">Themes</label
+                      ><button id="addTheme" type="button" class="quiet small">+ Theme</button>
+                    </div>
+                    <div id="themes"></div>
+                    <small>One theme per row. Commas remain part of the theme.</small>
+                  </div>
+                  <div class="form-section">
+                    <label for="ratingType">Difficulty</label
+                    ><select id="ratingType" style="margin-bottom: 10px">
+                      <option value="single">Single rating</option>
+                      <option value="range">Rating range</option>
+                    </select>
+                    <div id="singleRating">
+                      <label for="singleValue">Rating · 0–100</label
+                      ><input id="singleValue" type="number" min="0" max="100" step="1" />
+                    </div>
+                    <div id="rangeRating" class="two hidden">
+                      <div>
+                        <label for="rangeMin">Minimum</label
+                        ><input id="rangeMin" type="number" min="0" max="100" step="1" />
+                      </div>
+                      <div>
+                        <label for="rangeMax">Maximum</label
+                        ><input id="rangeMax" type="number" min="0" max="100" step="1" />
+                      </div>
+                    </div>
+                  </div>
+                  <details id="hintsDetails">
+                    <summary id="hintsLabel">Hints</summary>
+                    <div id="hints"></div>
+                    <button id="addHint" type="button" class="small">+ Hint</button>
+                  </details>
+                  <details id="solutionDetails">
+                    <summary id="solutionLabel">Solution pages</summary>
+                    <div id="solution"></div>
+                    <button id="addSolution" type="button" class="small">+ Page</button>
+                  </details>
+                  <details>
+                    <summary>Note & reference</summary>
+                    <label for="note" class="hidden">Note</label
+                    ><textarea id="note" rows="3"></textarea><small id="noteHelp"></small>
+                  </details>
+                </div>
+                <aside class="preview-panel">
+                  <div class="eyebrow">Live preview</div>
+                  <div id="preview" class="preview"></div>
+                  <p class="muted" style="margin-top: 24px">
+                    Preview uses the saved math and image notation. Source text is preserved.
+                  </p>
+                </aside>
+              </div>
+              <div class="savebar">
+                <span id="saveStatus" class="save-status">No changes</span
+                ><button id="save" class="primary" type="submit">Save to Dev</button>
+              </div>
+            </fieldset>
+          </form>
+        </section>
       </div>
-    </div>
-
-    <!-- ADD NUMERIC NONNEG -->
-    <!-- <div id="viewNum" class="card hidden">
-      <h2>Add Numeric Nonnegative Problem</h2>
-
-      <label>Statement (required)</label>
-      <textarea id="num_statement" placeholder="Problem statement..."></textarea>
-
-      <div class="row">
-        <div style="flex: 1; min-width: 260px;">
-          <label>Fields (comma-separated, required)</label>
-            <div id="num_fields">
-  <label style="display: block; margin-bottom: 6px;">
-    <input type="checkbox" value="algebra"> algebra
-  </label>
-  <label style="display: block; margin-bottom: 6px;">
-    <input type="checkbox" value="geometry"> geometry
-  </label>
-  <label style="display: block; margin-bottom: 6px;">
-    <input type="checkbox" value="combinatorics"> combinatorics
-  </label>
-  <label style="display: block;">
-    <input type="checkbox" value="number_theory"> number_theory
-  </label>
-</div>
-
-          <div class="muted">Must match your enum values in <code>problem_field</code>.</div>
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <label>Themes (comma-separated)</label>
-          <input id="num_themes" placeholder="mod, counting" />
-        </div>
-      </div>
-
-      <label>Hints</label>
-        <div id="num_hints_wrap"></div>
-        <div style="margin-top: 8px;">
-        <button type="button" class="secondary" id="btnAddNumHint">Add hint</button>
-    </div>
-
-     <label>Solution pages</label>
-<div id="num_solution_wrap"></div>
-<div style="margin-top: 8px;">
-  <button type="button" class="secondary" id="btnAddNumSolutionPage">Add solution page</button>
-</div>
-
-      <div class="row">
-        <div style="flex: 1; min-width: 260px;">
-          <label>Rating type</label>
-          <select id="num_rating_type">
-            <option value="single">single</option>
-            <option value="range">range</option>
-          </select>
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <label>Single value (0–100)</label>
-          <input id="num_single_value" type="number" min="0" max="100" value="15" />
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <label>Range min / max (0–100)</label>
-          <div class="row">
-            <input id="num_range_min" type="number" min="0" max="100" placeholder="min" />
-            <input id="num_range_max" type="number" min="0" max="100" placeholder="max" />
-          </div>
-        </div>
-      </div>
-
-        <label>Correct value (nonnegative integer, required)</label>
-        <input id="num_correct_value" type="number" min="0" step="1" />
-
-
-      <label>Note (optional)</label>
-      <textarea id="num_note" placeholder="Internal note..."></textarea>
-
-      <div style="margin-top: 12px;">
-        <button id="btnCreateNum">Create Numeric</button>
-      </div>
-    </div> -->
-<div id="viewNum" class="card hidden">
-  <h2>Add Numeric Nonnegative Problem</h2>
-
-  <div class="row" style="align-items: flex-start;">
-    <!-- LEFT: your existing Numeric form -->
-    <div style="flex: 2; min-width: 520px;">
-
-      <label>Statement (required)</label>
-      <textarea id="num_statement" placeholder="Problem statement..."></textarea>
-
-      <div class="row">
-        <div style="flex: 1; min-width: 260px;">
-          <label>Fields (comma-separated, required)</label>
-          <div id="num_fields">
-            <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="algebra"> algebra</label>
-            <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="geometry"> geometry</label>
-            <label style="display:block; margin-bottom:6px;"><input type="checkbox" value="combinatorics"> combinatorics</label>
-            <label style="display:block;"><input type="checkbox" value="number_theory"> number_theory</label>
-          </div>
-          <div class="muted">Must match your enum values in <code>problem_field</code>.</div>
-        </div>
-
-        <div style="flex: 1; min-width: 260px;">
-          <label>Themes (comma-separated)</label>
-          <input id="num_themes" placeholder="mod, counting" />
-        </div>
-      </div>
-
-      <label>Hints</label>
-      <div id="num_hints_wrap"></div>
-      <div style="margin-top: 8px;">
-        <button type="button" class="secondary" id="btnAddNumHint">Add hint</button>
-      </div>
-
-      <label>Solution pages</label>
-      <div id="num_solution_wrap"></div>
-      <div style="margin-top: 8px;">
-        <button type="button" class="secondary" id="btnAddNumSolutionPage">Add solution page</button>
-      </div>
-
-      <div class="row">
-        <div style="flex: 1; min-width: 260px;">
-          <label>Rating type</label>
-          <select id="num_rating_type">
-            <option value="single">single</option>
-            <option value="range">range</option>
-          </select>
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <label>Single value (0–100)</label>
-          <input id="num_single_value" type="number" min="0" max="100" value="15" />
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <label>Range min / max (0–100)</label>
-          <div class="row">
-            <input id="num_range_min" type="number" min="0" max="100" placeholder="min" />
-            <input id="num_range_max" type="number" min="0" max="100" placeholder="max" />
-          </div>
-        </div>
-      </div>
-
-      <label>Correct value (nonnegative integer, required)</label>
-      <input id="num_correct_value" type="number" min="0" step="1" />
-
-      <label>Note (optional)</label>
-      <textarea id="num_note" placeholder="Internal note..."></textarea>
-
-      <div style="margin-top: 12px;">
-        <button id="btnCreateNum">Create Numeric</button>
-      </div>
-
-    </div>
-
-    <!-- RIGHT: import panel -->
-    <div style="flex: 1; min-width: 320px; align-self: flex-start; position: sticky; top: 16px;">
-      <div class="card" style="margin: 0;">
-        <h3 style="margin-top: 0;">LaTeX Import</h3>
-        <textarea id="num_import_text" placeholder="Paste LaTeX block..."></textarea>
-        <button type="button" class="secondary" id="btnImportNum" style="margin-top: 8px;">Import → Prefill</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-
-  </div>
-
-  <!-- Supabase JS (UMD) -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
-  <script>
-    // ============
-    // 1) SET THESE
-    // ============
-    // OLD PROJECT:
-    const SUPABASE_URL = "https://ejociewraeeymlnggabs.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqb2NpZXdyYWVleW1sbmdnYWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MjE5MDMsImV4cCI6MjA3OTQ5NzkwM30.alz8l_ARW1SA12cOL6Ecemx8_lanYf5mIkkhIJtF_mg";
-
-    // NEW PROJECT:
-    //  const SUPABASE_URL = "https://vgywfubjrdvwkovvrant.supabase.co";
-    // const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZneXdmdWJqcmR2d2tvdnZyYW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNDYwMDksImV4cCI6MjA4NjgyMjAwOX0.0a3iqTkJPMapkSCOdCZKrdKgJgAuEIZeWv1gCPMJnsA";
-
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const el = (id) => document.getElementById(id);
-    const show = (id) => el(id).classList.remove("hidden");
-    const hide = (id) => el(id).classList.add("hidden");
-
-    function flash(message, kind = "ok") {
-      const m = el("msg");
-      m.className = "card";
-      m.classList.remove("hidden");
-      m.innerHTML = `<div class="${kind === "error" ? "error" : "ok"}">${message}</div>`;
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-function parseThemesSmart(s) {
-  const raw = (s || "").trim();
-  if (!raw) return [];
-
-  // If user uses semicolons, split on semicolons
-  if (raw.includes(";")) {
-    return raw
-      .split(";")
-      .map(x => x.trim())
-      .filter(Boolean);
-  }
-
-  // Otherwise fallback to commas (old behavior)
-  return raw
-    .split(",")
-    .map(x => x.trim())
-    .filter(Boolean);
-}
-    function parseHintsLines(s) {
-      return (s || "")
-        .split("\n")
-        .map(x => x.trim())
-        .filter(Boolean);
-    }
-
-    function parseChoicesLines(s) {
-      return (s || "")
-        .split("\n")
-        .map(x => x.trim())
-        .filter(Boolean);
-    }
-
-    function nav(viewId) {
-      ["viewAll","viewMCQ","viewNum"].forEach(hide);
-      show(viewId);
-    }
-
-    async function refreshAuthUI() {
-      const { data: { session } } = await sb.auth.getSession();
-
-      if (!session) {
-        hide("appView");
-        show("loginView");
-        return;
+      <p class="footer-note">
+        Changes go straight to the Dev database. Export a JSON file when you want to copy
+        corrections to the CMS.
+      </p>
+    </main>
+    <script src="https://unpkg.com/@supabase/supabase-js@2.112.4/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js"></script>
+    <script>
+      "use strict";
+      // The anon key is public by design. All reads/writes are protected by admin RLS.
+      const SUPABASE_URL = "https://vgywfubjrdvwkovvrant.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZneXdmdWJqcmR2d2tvdnZyYW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNDYwMDksImV4cCI6MjA4NjgyMjAwOX0.0a3iqTkJPMapkSCOdCZKrdKgJgAuEIZeWv1gCPMJnsA";
+      const FORMAT = "shef-mobile-corrections-v1";
+      const PROJECT = "vgywfubjrdvwkovvrant";
+      const PAGE_SIZE = 25;
+      const MAX_TRANSFER_PROBLEMS = 2000;
+      const FIELD_NAMES = {
+        algebra: "Algebra",
+        geometry: "Geometry",
+        combinatorics: "Combinatorics",
+        number_theory: "Number theory",
+        Unknown: "Unknown",
+      };
+      const EDITABLE = [
+        "statement",
+        "problem_type",
+        "choices",
+        "correct_choice",
+        "correct_value",
+        "fields",
+        "themes",
+        "hints",
+        "solution",
+        "rating_type",
+        "single_value",
+        "range_min",
+        "range_max",
+        "quality",
+        "note",
+      ];
+      const el = (id) => document.getElementById(id);
+      const state = {
+        admin: null,
+        rows: [],
+        filtered: [],
+        page: 0,
+        selected: new Set(),
+        original: null,
+        initial: null,
+        busy: false,
+        loadVersion: 0,
+        openVersion: 0,
+        choiceId: 0,
+        authVersion: 0,
+      };
+      let sb;
+      let signingIn = false;
+      function node(tag, text, className) {
+        const n = document.createElement(tag);
+        if (text !== undefined) n.textContent = text;
+        if (className) n.className = className;
+        return n;
       }
-
-      hide("loginView");
-      show("appView");
-      el("whoami").textContent = session.user.email ?? session.user.id;
-
-      // Check if user is admin (exists in admin_accounts)
-      const { data: adminRow, error } = await sb
-        .from("admin_accounts")
-        .select("id,email,display_name")
-        .eq("id", session.user.id)
-        .maybeSingle();
-
-      if (error) {
-        el("adminStatus").innerHTML = `<span class="error">Admin check failed: ${error.message}</span>`;
-        return;
+      function visible(id, show) {
+        el(id).classList.toggle("hidden", !show);
       }
-
-      if (!adminRow) {
-        el("adminStatus").innerHTML = `<span class="error">Not an admin. (No row in admin_accounts)</span>`;
-      } else {
-        el("adminStatus").textContent = `Admin OK: ${adminRow.display_name ?? adminRow.email}`;
+      function flash(message, error = false) {
+        el("message").textContent = message;
+        el("message").className = "notice" + (error ? " error" : "");
       }
-    }
-
-    // =========
-    // LOGIN FLOW
-    // =========
-    el("btnLogin").addEventListener("click", async () => {
-      try {
-        const email = el("email").value.trim();
-        const password = el("password").value;
-
-        const { error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) return flash(error.message, "error");
-
-        flash("Signed in.", "ok");
-        await refreshAuthUI();
-        nav("viewAll");
+      function clearMessage() {
+        visible("message", false);
+      }
+      function equal(a, b) {
+        return JSON.stringify(a) === JSON.stringify(b);
+      }
+      function cmsReference(note) {
+        return (
+          (note || "").match(
+            /\bCMS:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b/i,
+          )?.[1] || null
+        );
+      }
+      function blankProblem() {
+        return {
+          statement: "",
+          problem_type: "mc_single_select",
+          choices: ["", ""],
+          correct_choice: null,
+          correct_value: null,
+          fields: [],
+          themes: [],
+          hints: [],
+          solution: null,
+          rating_type: "single",
+          single_value: 15,
+          range_min: null,
+          range_max: null,
+          quality: 0,
+          note: null,
+        };
+      }
+      function listValues(id) {
+        return [...el(id).querySelectorAll("[data-value]")].map((n) => n.value);
+      }
+      function readForm() {
+        return {
+          statement: el("statement").value,
+          problem_type: el("problemType").value,
+          quality: el("quality").value,
+          choices: listValues("choices"),
+          correct_row: el("choices").querySelector("input[type=radio]:checked")?.value || null,
+          correct_value: el("correctValue").value,
+          fields: [...el("fields").querySelectorAll("input:checked")].map((n) => n.value),
+          themes: listValues("themes"),
+          hints: listValues("hints"),
+          solution: listValues("solution"),
+          rating_type: el("ratingType").value,
+          single_value: el("singleValue").value,
+          range_min: el("rangeMin").value,
+          range_max: el("rangeMax").value,
+          note: el("note").value,
+        };
+      }
+      function changed() {
+        return state.initial && !equal(readForm(), state.initial);
+      }
+      function integer(value, label, max) {
+        if (
+          value === "" ||
+          !/^\d+$/.test(value) ||
+          !Number.isSafeInteger(Number(value)) ||
+          Number(value) > max
+        )
+          throw new Error(label + " must be an integer from 0 to " + max + ".");
+        return Number(value);
+      }
+      function checkStrings(values, label) {
+        if (values.some((v) => typeof v !== "string" || !v.trim()))
+          throw new Error(
+            label + " cannot contain blank entries. Remove an empty row if it is not needed.",
+          );
+        return values;
+      }
+      function buildPatch() {
+        const raw = readForm(),
+          base = state.original || blankProblem(),
+          fresh = !state.original,
+          out = {};
+        const touched = (key) => fresh || !equal(raw[key], state.initial[key]);
+        if (touched("statement")) {
+          if (!raw.statement.trim()) throw new Error("Statement is required.");
+          out.statement = raw.statement;
+        }
+        if (touched("quality")) out.quality = integer(raw.quality, "Quality", 2);
+        if (touched("fields")) {
+          if (!raw.fields.length) throw new Error("Choose at least one field.");
+          out.fields = raw.fields;
+        }
+        for (const key of ["themes", "hints", "solution"])
+          if (touched(key))
+            out[key] = checkStrings(raw[key], key === "solution" ? "Solution pages" : key);
+        if (touched("note")) {
+          if (cmsReference(base.note) && raw.note !== base.note)
+            throw new Error("The CMS reference must remain unchanged.");
+          out.note = raw.note === "" ? null : raw.note;
+        }
+        const typeChanged = touched("problem_type");
+        if (typeChanged) {
+          if (!["mc_single_select", "numeric_nonneg"].includes(raw.problem_type))
+            throw new Error("Unsupported problem type.");
+          out.problem_type = raw.problem_type;
+        }
+        if (
+          typeChanged ||
+          touched("choices") ||
+          touched("correct_row") ||
+          touched("correct_value")
+        ) {
+          if (raw.problem_type === "mc_single_select") {
+            const choices = checkStrings(raw.choices, "Choices");
+            if (choices.length < 2) throw new Error("Add at least two choices.");
+            if (new Set(choices.map((v) => v.trim())).size !== choices.length)
+              throw new Error("Each choice must have different text.");
+            const rows = [...el("choices").children];
+            const correct = rows.findIndex((row) => row.dataset.rowId === raw.correct_row);
+            if (correct < 0) throw new Error("Select the correct answer.");
+            Object.assign(out, { choices, correct_choice: choices[correct], correct_value: null });
+          } else if (raw.problem_type === "numeric_nonneg")
+            Object.assign(out, {
+              correct_value: integer(raw.correct_value, "Correct answer", 2147483647),
+              choices: null,
+              correct_choice: null,
+            });
+        }
+        if (["rating_type", "single_value", "range_min", "range_max"].some(touched)) {
+          if (raw.rating_type === "single")
+            Object.assign(out, {
+              rating_type: "single",
+              single_value: integer(raw.single_value, "Rating", 100),
+              range_min: null,
+              range_max: null,
+            });
+          else {
+            const min = integer(raw.range_min, "Minimum rating", 100),
+              max = integer(raw.range_max, "Maximum rating", 100);
+            if (min > max) throw new Error("Minimum rating must not exceed maximum rating.");
+            Object.assign(out, {
+              rating_type: "range",
+              single_value: null,
+              range_min: min,
+              range_max: max,
+            });
+          }
+        }
+        return fresh
+          ? { ...base, ...out }
+          : Object.fromEntries(
+              Object.entries(out).filter(([key, value]) => !equal(value, base[key])),
+            );
+      }
+      function repeatRow(id, value = "", selected = false) {
+        const row = node("div", undefined, "repeat-row");
+        row.dataset.rowId = "row-" + ++state.choiceId;
+        if (id === "choices") {
+          const radio = node("input");
+          radio.type = "radio";
+          radio.name = "correctChoice";
+          radio.value = row.dataset.rowId;
+          radio.checked = selected;
+          radio.setAttribute("aria-label", "Mark this choice as correct");
+          row.append(radio);
+        }
+        if (id === "hints" || id === "solution") row.append(node("span", undefined, "row-label"));
+        const input = node(id === "themes" ? "input" : "textarea");
+        if (id === "themes") input.type = "text";
+        input.dataset.value = "";
+        input.value = value;
+        input.setAttribute(
+          "aria-label",
+          id === "choices"
+            ? "Choice text"
+            : id === "themes"
+              ? "Theme"
+              : id === "hints"
+                ? "Hint text"
+                : "Solution page text",
+        );
+        if (id === "choices") input.rows = 2;
+        row.append(input);
+        const controls = node("div", undefined, "repeat-controls");
+        for (const [label, title, action] of [
+          [
+            "↑",
+            "Move up",
+            () => {
+              if (row.previousElementSibling) row.previousElementSibling.before(row);
+            },
+          ],
+          [
+            "↓",
+            "Move down",
+            () => {
+              if (row.nextElementSibling) row.nextElementSibling.after(row);
+            },
+          ],
+          ["×", "Remove row", () => row.remove()],
+        ]) {
+          const b = node("button", label);
+          b.type = "button";
+          b.title = title;
+          b.setAttribute("aria-label", title);
+          b.addEventListener("click", () => {
+            action();
+            refreshEditor();
+          });
+          controls.append(b);
+        }
+        row.append(controls);
+        el(id).append(row);
+        return row;
+      }
+      function showProblem(problem) {
+        state.original = problem?.id ? structuredClone(problem) : null;
+        const p = problem || blankProblem();
+        for (const [id, key] of Object.entries({
+          statement: "statement",
+          problemType: "problem_type",
+          quality: "quality",
+          correctValue: "correct_value",
+          ratingType: "rating_type",
+          singleValue: "single_value",
+          rangeMin: "range_min",
+          rangeMax: "range_max",
+          note: "note",
+        }))
+          el(id).value = p[key] ?? "";
+        el("fields").replaceChildren();
+        for (const [value, label] of Object.entries(FIELD_NAMES)) {
+          const wrap = node("label", label),
+            input = node("input");
+          input.type = "checkbox";
+          input.value = value;
+          input.checked = (p.fields || []).includes(value);
+          wrap.prepend(input);
+          el("fields").append(wrap);
+        }
+        for (const id of ["choices", "themes", "hints", "solution"]) {
+          el(id).replaceChildren();
+          (p[id] || []).forEach((value, i) =>
+            repeatRow(id, value, id === "choices" && i === p.choices.indexOf(p.correct_choice)),
+          );
+        }
+        el("note").readOnly = Boolean(cmsReference(p.note));
+        el("noteHelp").textContent = cmsReference(p.note)
+          ? "CMS reference is preserved for export."
+          : "Internal note or source reference.";
+        el("editorTitle").textContent = p.id ? "Problem #" + p.integer_id : "New problem";
+        el("identity").textContent = p.id ? p.id : "Added directly to Dev when saved.";
+        state.initial = readForm();
+        visible("emptyEditor", false);
+        visible("editorForm", true);
+        el("hintsDetails").open = false;
+        el("solutionDetails").open = false;
+        clearMessage();
+        refreshEditor();
+        renderList();
+      }
+      function refreshEditor() {
+        visible("mcqSection", el("problemType").value === "mc_single_select");
+        visible("numericSection", el("problemType").value === "numeric_nonneg");
+        visible("singleRating", el("ratingType").value === "single");
+        visible("rangeRating", el("ratingType").value === "range");
+        for (const id of ["hints", "solution"]) {
+          [...el(id).querySelectorAll(".row-label")].forEach((n, i) => (n.textContent = i + 1));
+          el(id === "hints" ? "hintsLabel" : "solutionLabel").textContent =
+            (id === "hints" ? "Hints" : "Solution pages") + " · " + el(id).children.length;
+        }
+        const dirty = changed();
+        el("saveStatus").textContent = state.busy
+          ? "Saving…"
+          : dirty
+            ? "Unsaved changes"
+            : "No changes";
+        el("saveStatus").classList.toggle("changed", Boolean(dirty));
+        el("save").disabled = state.busy || Boolean(state.original && !dirty);
+        el("exportCurrent").disabled = !state.original || dirty || state.busy;
+        renderPreview();
+      }
+      function appendImage(parent, url) {
+        try {
+          const parsed = new URL(url);
+          if (parsed.protocol !== "https:" || parsed.username || parsed.password) throw Error();
+          const img = node("img");
+          img.src = parsed.href;
+          img.alt = "Problem diagram";
+          img.loading = "lazy";
+          img.referrerPolicy = "no-referrer";
+          img.addEventListener("error", () =>
+            img.replaceWith(node("p", "Diagram could not be loaded.", "preview-note")),
+          );
+          parent.append(img);
+        } catch {
+          parent.append(node("p", "Diagram URL cannot be previewed.", "preview-note"));
+        }
+      }
+      function appendPreview(parent, source) {
+        const pattern =
+          /\\begin\{(asy|tikzpicture)\}(?:\[([^\]]*)\])?[\s\S]*?\\end\{\1\}|\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}/g;
+        let last = 0;
+        for (const match of source.matchAll(pattern)) {
+          if (match.index > last)
+            parent.append(node("span", source.slice(last, match.index), "preview-part"));
+          const url =
+            match[3] || match[2]?.match(/(?:^|[,\s])png\s*=\s*(https:\/\/[^,\s\]]+)/)?.[1];
+          if (url) appendImage(parent, url);
+          else parent.append(node("p", "Diagram source has no PNG preview.", "preview-note"));
+          last = match.index + match[0].length;
+        }
+        if (last < source.length) parent.append(node("span", source.slice(last), "preview-part"));
+      }
+      function renderPreview() {
+        const wrap = el("preview");
+        wrap.replaceChildren();
+        const raw = readForm();
+        appendPreview(wrap, raw.statement || "Your problem will appear here.");
+        if (raw.problem_type === "mc_single_select") {
+          [...el("choices").children].forEach((row, i) => {
+            const box = node(
+              "div",
+              undefined,
+              "preview-choice" + (row.dataset.rowId === raw.correct_row ? " correct" : ""),
+            );
+            box.append(node("span", String.fromCharCode(65 + i) + ". "));
+            appendPreview(box, raw.choices[i]);
+            wrap.append(box);
+          });
+        } else if (raw.correct_value !== "") {
+          wrap.append(node("h3", "Answer"));
+          wrap.append(node("div", raw.correct_value));
+        }
+        for (const [key, label] of [
+          ["hints", "Hint"],
+          ["solution", "Solution"],
+        ])
+          raw[key].forEach((value, i) => {
+            if (value) {
+              wrap.append(node("h3", label + " " + (i + 1)));
+              const part = node("div");
+              appendPreview(part, value);
+              wrap.append(part);
+            }
+          });
+        if (window.renderMathInElement)
+          window.renderMathInElement(wrap, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "\\[", right: "\\]", display: true },
+              { left: "\\(", right: "\\)", display: false },
+              { left: "$", right: "$", display: false },
+            ],
+            throwOnError: false,
+            trust: false,
+            strict: "ignore",
+            maxExpand: 1000,
+          });
+      }
+      function filterProblems() {
+        const q = el("search").value.trim().toLowerCase(),
+          type = el("filterType").value,
+          field = el("filterField").value,
+          quality = el("filterQuality").value;
+        state.filtered = state.rows.filter(
+          (p) =>
+            (!q ||
+              [p.statement, p.note, p.id, "#" + p.integer_id].some((v) =>
+                String(v ?? "")
+                  .toLowerCase()
+                  .includes(q),
+              )) &&
+            (!type || p.problem_type === type) &&
+            (!field || (p.fields || []).includes(field)) &&
+            (quality === "" || String(p.quality) === quality),
+        );
+        state.page = Math.min(
+          state.page,
+          Math.max(0, Math.ceil(state.filtered.length / PAGE_SIZE) - 1),
+        );
+        renderList();
+      }
+      function renderList() {
+        const wrap = el("problemList");
+        wrap.replaceChildren();
+        const page = state.filtered.slice(state.page * PAGE_SIZE, (state.page + 1) * PAGE_SIZE);
+        for (const p of page) {
+          const row = node(
+              "div",
+              undefined,
+              "problem-row" + (state.original?.id === p.id ? " active" : ""),
+            ),
+            check = node("input");
+          check.type = "checkbox";
+          check.checked = state.selected.has(p.id);
+          check.setAttribute("aria-label", "Select problem " + p.integer_id);
+          check.addEventListener("change", () => {
+            check.checked ? state.selected.add(p.id) : state.selected.delete(p.id);
+            renderList();
+          });
+          row.append(check);
+          const button = node("button", undefined, "problem-open");
+          button.type = "button";
+          const meta = node("div", undefined, "problem-meta");
+          meta.append(
+            node("span", "#" + p.integer_id, "problem-number"),
+            node("span", p.problem_type === "mc_single_select" ? "Multiple choice" : "Numeric"),
+            node("span", "Q" + p.quality),
+          );
+          button.append(meta, node("div", p.statement, "problem-title"));
+          button.addEventListener("click", () => openProblem(p.id));
+          row.append(button);
+          wrap.append(row);
+        }
+        if (!page.length)
+          wrap.append(
+            node(
+              "div",
+              state.rows.length ? "No matching problems." : "No problems loaded.",
+              "empty",
+            ),
+          );
+        el("totalCount").textContent = state.rows.length;
+        el("pageInfo").textContent = state.filtered.length
+          ? state.page * PAGE_SIZE +
+            1 +
+            "–" +
+            (state.page * PAGE_SIZE + page.length) +
+            " of " +
+            state.filtered.length
+          : "0 problems";
+        el("previous").disabled = state.page === 0;
+        el("next").disabled = (state.page + 1) * PAGE_SIZE >= state.filtered.length;
+        el("selectPage").checked = page.length > 0 && page.every((p) => state.selected.has(p.id));
+        el("selectPage").indeterminate =
+          page.some((p) => state.selected.has(p.id)) && !el("selectPage").checked;
+        el("exportSelected").textContent = state.selected.size
+          ? "Export selected (" + state.selected.size + ")"
+          : "Export selected";
+        el("exportSelected").disabled = !state.selected.size || state.busy;
+        el("exportFiltered").disabled = !state.filtered.length || state.busy;
+      }
+      async function loadProblems() {
+        if (!state.admin) return;
+        const version = ++state.loadVersion;
+        el("reload").disabled = true;
+        try {
+          let rows = [];
+          for (let start = 0; ; start += 500) {
+            const { data, error } = await sb
+              .from("problems")
+              .select("*")
+              .retry(false)
+              .order("integer_id", { ascending: false })
+              .range(start, start + 499);
+            if (error) throw error;
+            rows.push(...data);
+            if (data.length < 500) break;
+          }
+          if (version !== state.loadVersion || !state.admin) return;
+          state.rows = rows;
+          state.selected = new Set(
+            [...state.selected].filter((id) => rows.some((p) => p.id === id)),
+          );
+          filterProblems();
+        } catch (error) {
+          flash("Could not load problems: " + error.message, true);
+        } finally {
+          el("reload").disabled = false;
+        }
+      }
+      async function openProblem(id) {
+        if (state.busy) return;
+        if (changed()) {
+          flash("Save your changes or close this problem before opening another.", true);
+          return;
+        }
+        const version = ++state.openVersion;
+        try {
+          const { data, error } = await sb
+            .from("problems")
+            .select("*")
+            .retry(false)
+            .eq("id", id)
+            .single();
+          if (error) throw error;
+          if (version !== state.openVersion || !state.admin) return;
+          if (!["mc_single_select", "numeric_nonneg"].includes(data.problem_type))
+            throw new Error("This problem type is not supported by the editor.");
+          showProblem(data);
+        } catch (error) {
+          flash("Could not open problem: " + error.message, true);
+        }
+      }
+      function closeEditor() {
+        if (state.busy) return;
+        ++state.openVersion;
+        state.original = null;
+        state.initial = null;
+        visible("editorForm", false);
+        visible("emptyEditor", true);
+        clearMessage();
+        renderList();
+      }
+      function setBusy(busy) {
+        state.busy = busy;
+        el("editorFields").disabled = busy;
+        for (const id of ["importButton", "addProblem", "signOut"]) el(id).disabled = busy;
+        renderList();
+      }
+      async function saveProblem(event) {
+        event.preventDefault();
+        if (state.busy || !state.admin) return;
+        let patch;
+        try {
+          patch = buildPatch();
+        } catch (error) {
+          flash(error.message, true);
+          return;
+        }
+        if (!Object.keys(patch).length) {
+          flash("No changes to save.");
+          return;
+        }
+        setBusy(true);
+        el("saveStatus").textContent = "Saving…";
+        try {
+          let saved;
+          if (state.original) {
+            const { data, error } = await sb
+              .from("problems")
+              .update(patch)
+              .eq("id", state.original.id)
+              .select()
+              .retry(false)
+              .single();
+            if (error) throw error;
+            saved = data;
+          } else {
+            const { data, error } = await sb
+              .rpc("admin_import_problem", { p_problem: patch })
+              .retry(false);
+            if (error) throw error;
+            const result = Array.isArray(data) ? data[0] : data;
+            if (result.status === "skipped") {
+              flash(
+                "Already exists as problem #" +
+                  result.integer_id +
+                  " (matching " +
+                  result.matched_by +
+                  "). Nothing was added.",
+              );
+              return;
+            }
+            const response = await sb
+              .from("problems")
+              .select("*")
+              .retry(false)
+              .eq("id", result.id)
+              .single();
+            if (response.error)
+              throw new Error(
+                "Problem was added, but could not be reloaded. Reload the catalogue to open it.",
+              );
+            saved = response.data;
+          }
+          const index = state.rows.findIndex((p) => p.id === saved.id);
+          if (index < 0) state.rows.unshift(saved);
+          else state.rows[index] = saved;
+          showProblem(saved);
+          filterProblems();
+          flash("Problem #" + saved.integer_id + " saved to Dev.");
+          el("saveStatus").textContent = "Saved to Dev";
+        } catch (error) {
+          flash("Save failed: " + error.message, true);
+          el("saveStatus").textContent = "Not saved";
+        } finally {
+          setBusy(false);
+          el("save").disabled = Boolean(state.original && !changed());
+          el("exportCurrent").disabled = !state.original || changed();
+        }
+      }
+      async function exportProblems(ids) {
+        if (state.busy || !state.admin || !ids.length) return;
+        if (ids.length > MAX_TRANSFER_PROBLEMS) {
+          flash(
+            "Export at most 2,000 problems at a time. Split your selection into smaller files.",
+            true,
+          );
+          return;
+        }
+        if (state.original && ids.includes(state.original.id) && changed()) {
+          flash("Save this problem before exporting its corrections.", true);
+          return;
+        }
+        setBusy(true);
+        try {
+          const problems = [];
+          for (let i = 0; i < ids.length; i += 100) {
+            const batch = ids.slice(i, i + 100);
+            const { data, error } = await sb
+              .from("problems")
+              .select("*")
+              .retry(false)
+              .in("id", batch)
+              .order("integer_id");
+            if (error) throw error;
+            if (data.length !== batch.length)
+              throw new Error(
+                "Some selected problems are no longer available. Reload the catalogue.",
+              );
+            const assets = [];
+            for (let start = 0; ; start += 500) {
+              const result = await sb
+                .from("problem_assets")
+                .select("*")
+                .retry(false)
+                .in("problem_id", batch)
+                .order("id")
+                .range(start, start + 499);
+              if (result.error) throw result.error;
+              assets.push(...result.data);
+              if (result.data.length < 500) break;
+            }
+            problems.push(
+              ...data.map((p) => ({ ...p, assets: assets.filter((a) => a.problem_id === p.id) })),
+            );
+          }
+          const pack = {
+            format: FORMAT,
+            source_project: PROJECT,
+            exported_at: new Date().toISOString(),
+            problems,
+          };
+          downloadJSON(
+            pack,
+            "shef-mobile-corrections-" + new Date().toISOString().slice(0, 10) + ".json",
+          );
+          flash(
+            "Exported " +
+              problems.length +
+              " saved problem" +
+              (problems.length === 1 ? "" : "s") +
+              " for the CMS.",
+          );
+        } catch (error) {
+          flash("Export failed: " + error.message, true);
+        } finally {
+          setBusy(false);
+        }
+      }
+      function downloadJSON(value, name) {
+        const url = URL.createObjectURL(
+            new Blob([JSON.stringify(value, null, 2) + "\n"], { type: "application/json" }),
+          ),
+          a = node("a");
+        a.href = url;
+        a.download = name;
+        document.body.append(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      async function importFile(file) {
+        if (!file || state.busy || !state.admin) return;
+        let pack;
+        try {
+          if (file.size > 20 * 1024 * 1024)
+            throw new Error("Choose a JSON file smaller than 20 MB.");
+          pack = JSON.parse(await file.text());
+          if (pack.source_project !== PROJECT)
+            throw new Error("This file is not from the Shef Math Dev database.");
+          if (pack.format !== FORMAT || !Array.isArray(pack.problems) || !pack.problems.length)
+            throw new Error("Expected a " + FORMAT + " file containing problems.");
+          if (pack.problems.length > MAX_TRANSFER_PROBLEMS)
+            throw new Error("Import at most 2,000 problems at a time.");
+          if (
+            pack.problems.some(
+              (p) =>
+                !p || typeof p !== "object" || Array.isArray(p) || typeof p.statement !== "string",
+            )
+          )
+            throw new Error("Every entry must be a problem object with a statement.");
+        } catch (error) {
+          flash("Import failed: " + error.message, true);
+          return;
+        }
+        setBusy(true);
+        let inserted = 0,
+          skipped = 0;
+        try {
+          for (let i = 0; i < pack.problems.length; i++) {
+            const p = pack.problems[i],
+              payload = {};
+            for (const key of EDITABLE) if (Object.hasOwn(p, key)) payload[key] = p[key];
+            if (Object.hasOwn(p, "assets")) {
+              if (!Array.isArray(p.assets)) throw new Error("Assets must be an array.");
+              payload.assets = p.assets.map((asset) =>
+                Object.fromEntries(
+                  [
+                    "asset_key",
+                    "cms_asset_id",
+                    "bucket",
+                    "storage_path",
+                    "public_url",
+                    "content_type",
+                    "byte_size",
+                    "sha256",
+                    "width",
+                    "height",
+                  ]
+                    .filter((key) => Object.hasOwn(asset, key))
+                    .map((key) => [key, asset[key]]),
+                ),
+              );
+            }
+            const { data, error } = await sb
+              .rpc("admin_import_problem", { p_problem: payload })
+              .retry(false);
+            if (error) throw new Error("Stopped at item " + (i + 1) + ": " + error.message);
+            const result = Array.isArray(data) ? data[0] : data;
+            if (result.status === "inserted") inserted++;
+            else if (result.status === "skipped") skipped++;
+            else throw new Error("Unexpected import result at item " + (i + 1) + ".");
+            flash("Importing " + (i + 1) + " / " + pack.problems.length + "…");
+          }
+          flash("Import complete: " + inserted + " added, " + skipped + " duplicates skipped.");
+        } catch (error) {
+          flash(
+            error.message +
+              "\n" +
+              inserted +
+              " added; " +
+              skipped +
+              " skipped. Remaining items were not imported.",
+            true,
+          );
+        } finally {
+          setBusy(false);
+          await loadProblems();
+        }
+      }
+      async function checkSession(session) {
+        const authVersion = ++state.authVersion;
+        if (!session) {
+          state.admin = null;
+          state.rows = [];
+          state.filtered = [];
+          state.selected.clear();
+          ++state.loadVersion;
+          ++state.openVersion;
+          state.original = null;
+          state.initial = null;
+          visible("appView", false);
+          visible("account", false);
+          visible("loginView", true);
+          visible("editorForm", false);
+          visible("emptyEditor", true);
+          return;
+        }
+        if (state.admin?.id === session.user.id) return;
+        visible("appView", false);
+        visible("loginView", false);
+        visible("account", true);
+        el("whoami").textContent = session.user.email || session.user.id;
+        const { data, error } = await sb
+          .from("admin_accounts")
+          .select("id,email,display_name")
+          .retry(false)
+          .eq("id", session.user.id)
+          .maybeSingle();
+        if (authVersion !== state.authVersion) return;
+        if (error || !data) {
+          state.admin = null;
+          flash(
+            error
+              ? "Admin access could not be checked: " + error.message
+              : "This account does not have admin access.",
+            true,
+          );
+          return;
+        }
+        state.admin = data;
+        el("whoami").textContent = data.display_name || data.email || session.user.email;
+        visible("appView", true);
+        clearMessage();
         await loadProblems();
-      } catch (e) {
-        flash(String(e), "error");
       }
-    });
-
-    el("btnSignOut").addEventListener("click", async () => {
-      const { error } = await sb.auth.signOut();
-      if (error) return flash(error.message, "error");
-      flash("Signed out.", "ok");
-      await refreshAuthUI();
-    });
-
-    // =========
-    // NAV
-    // =========
-    el("navAll").addEventListener("click", async () => { nav("viewAll"); await loadProblems(); });
-    el("navMCQ").addEventListener("click", () => nav("viewMCQ"));
-    el("navNum").addEventListener("click", () => nav("viewNum"));
-    el("btnReload").addEventListener("click", loadProblems);
-
-    // =========
-    // LIST
-    // =========
-    async function loadProblems() {
-      const limit = Math.min(Math.max(parseInt(el("listLimit").value || "50", 10), 1), 500);
-      const sort = el("listSort").value;
-
-      let orderCol = "created_at";
-      let ascending = false;
-
-      if (sort === "created_at_asc") { orderCol = "created_at"; ascending = true; }
-      if (sort === "created_at_desc") { orderCol = "created_at"; ascending = false; }
-      if (sort === "integer_id_asc") { orderCol = "integer_id"; ascending = true; }
-      if (sort === "integer_id_desc") { orderCol = "integer_id"; ascending = false; }
-
-      const { data, error } = await sb
-        .from("problems")
-        .select("integer_id,id,problem_type,rating_type,single_value,range_min,range_max,fields,created_at,statement")
-        .order(orderCol, { ascending })
-        .limit(limit);
-
-      if (error) return flash("Load failed: " + error.message, "error");
-
-      const wrap = el("problemsTableWrap");
-      if (!data || data.length === 0) {
-        wrap.innerHTML = `<p class="muted">No problems found.</p>`;
-        return;
+      el("editorForm").addEventListener("submit", saveProblem);
+      el("editorForm").addEventListener("input", refreshEditor);
+      el("editorForm").addEventListener("change", refreshEditor);
+      for (const [button, id] of [
+        ["addChoice", "choices"],
+        ["addTheme", "themes"],
+        ["addHint", "hints"],
+        ["addSolution", "solution"],
+      ])
+        el(button).addEventListener("click", () => {
+          repeatRow(id);
+          refreshEditor();
+          el(id).lastElementChild.querySelector("[data-value]").focus();
+        });
+      el("addProblem").addEventListener("click", () => {
+        if (changed()) {
+          flash("Save your changes or close this problem before adding another.", true);
+          return;
+        }
+        ++state.openVersion;
+        showProblem(null);
+      });
+      el("closeEditor").addEventListener("click", closeEditor);
+      el("reload").addEventListener("click", loadProblems);
+      for (const id of ["search", "filterType", "filterField", "filterQuality"])
+        el(id).addEventListener(id === "search" ? "input" : "change", () => {
+          state.page = 0;
+          filterProblems();
+        });
+      el("previous").addEventListener("click", () => {
+        state.page--;
+        renderList();
+      });
+      el("next").addEventListener("click", () => {
+        state.page++;
+        renderList();
+      });
+      el("selectPage").addEventListener("change", (event) => {
+        state.filtered
+          .slice(state.page * PAGE_SIZE, (state.page + 1) * PAGE_SIZE)
+          .forEach((p) =>
+            event.target.checked ? state.selected.add(p.id) : state.selected.delete(p.id),
+          );
+        renderList();
+      });
+      el("exportSelected").addEventListener("click", () => exportProblems([...state.selected]));
+      el("exportFiltered").addEventListener("click", () =>
+        exportProblems(state.filtered.map((p) => p.id)),
+      );
+      el("exportCurrent").addEventListener("click", () => {
+        if (state.original && !changed()) exportProblems([state.original.id]);
+      });
+      el("importButton").addEventListener("click", () => el("importFile").click());
+      el("importFile").addEventListener("change", async (event) => {
+        await importFile(event.target.files[0]);
+        event.target.value = "";
+      });
+      function setLoginBusy(busy) {
+        signingIn = busy;
+        el("signIn").disabled = busy;
+        el("googleSignIn").disabled = busy;
       }
-
-      wrap.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Type</th>
-              <th>Rating</th>
-              <th>Fields</th>
-              <th>Statement</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.map(p => {
-              const r = p.rating_type === "single"
-                ? `single: ${p.single_value}`
-                : `range: ${p.range_min}–${p.range_max}`;
-              const fields = Array.isArray(p.fields) ? p.fields.join(", ") : "";
-              const stmt = (p.statement || "").slice(0, 160).replaceAll("<","&lt;").replaceAll(">","&gt;");
-              const created = new Date(p.created_at).toLocaleString();
-              return `
-                <tr>
-                  <td>${p.integer_id}</td>
-                  <td>${p.problem_type}</td>
-                  <td>${r}</td>
-                  <td>${fields}</td>
-                  <td>${stmt}${(p.statement || "").length > 160 ? "…" : ""}</td>
-                  <td>${created}</td>
-                  <td><button class="secondary" onclick="editProblem('${p.id}')">Edit</button></td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
-      `;
-    }
-
-    // =========
-    // CREATE MCQ
-    // =========
-    el("btnCreateMCQ").addEventListener("click", async () => {
-      const statement = el("mcq_statement").value.trim();
-const fields = Array.from(document.querySelectorAll("#mcq_fields input:checked"))
-  .map(cb => cb.value);
-      const themes = parseThemesSmart(el("mcq_themes").value);
-      const hints = getHintInputs("mcq_hints_wrap");
-    const solutionPages = getTextareaList("mcq_solution_wrap");
-    const solution = solutionPages.length ? solutionPages : null;
-
-      const note = el("mcq_note").value.trim() || null;
-
-      const rating_type = el("mcq_rating_type").value;
-      const single_value = rating_type === "single" ? Number(el("mcq_single_value").value) : null;
-      const range_min = rating_type === "range" ? Number(el("mcq_range_min").value) : null;
-      const range_max = rating_type === "range" ? Number(el("mcq_range_max").value) : null;
-
-      const choices = getChoiceInputs();
-        const correct_choice = el("mcq_correct_choice_select").value;
-
-      if (!statement) return flash("Statement is required.", "error");
-      if (fields.length < 1) return flash("At least one field is required.", "error");
-      if (choices.length < 2) return flash("At least 2 choices required.", "error");
-      if (!correct_choice) return flash("Correct choice required.", "error");
-
-      const payload = {
-        statement,
-        solution,
-        hints,
-        fields,
-        themes,
-        note,
-        problem_type: "mc_single_select",
-        rating_type,
-        single_value,
-        range_min,
-        range_max,
-        choices,
-        correct_choice,
-        correct_value: null
-      };
-
-        const q = sb.from("problems");
-        const op = window.__editingProblemId
-        ? q.update(payload).eq("id", window.__editingProblemId)
-        : q.insert(payload);
-
-        const { data, error } = await op.select("integer_id,id").single();
-
-
-      if (error) return flash("Save failed: " + error.message, "error");
-
-      window.__editingProblemId = null;  // ← ADD THIS LINE
-
-      flash(`MCQ created. integer_id=${data.integer_id}`, "ok");
-      nav("viewAll");
-      await loadProblems();
-    });
-
-    // =========
-    // CREATE NUMERIC
-    // =========
-    el("btnCreateNum").addEventListener("click", async () => {
-      const statement = el("num_statement").value.trim();
-const fields = Array.from(document.querySelectorAll("#num_fields input:checked"))
-  .map(cb => cb.value);
-      const themes = parseThemesSmart(el("num_themes").value);
-        const hints = getHintInputs("num_hints_wrap");
-const solutionPages = getTextareaList("num_solution_wrap");
-const solution = solutionPages.length ? solutionPages : null;
-
-      const note = el("num_note").value.trim() || null;
-
-      const rating_type = el("num_rating_type").value;
-      const single_value = rating_type === "single" ? Number(el("num_single_value").value) : null;
-      const range_min = rating_type === "range" ? Number(el("num_range_min").value) : null;
-      const range_max = rating_type === "range" ? Number(el("num_range_max").value) : null;
-
-      const correct_value = Number(el("num_correct_value").value);
-
-      if (!statement) return flash("Statement is required.", "error");
-      if (fields.length < 1) return flash("At least one field is required.", "error");
-      if (!Number.isFinite(correct_value)) return flash("Correct value is required.", "error");
-
-      const payload = {
-        statement,
-        solution,
-        hints,
-        fields,
-        themes,
-        note,
-        problem_type: "numeric_nonneg",
-        rating_type,
-        single_value,
-        range_min,
-        range_max,
-        correct_value,
-        choices: null,
-        correct_choice: null
-      };
-
-      const q = sb.from("problems");
-        const op = window.__editingProblemId
-        ? q.update(payload).eq("id", window.__editingProblemId)
-        : q.insert(payload);
-
-        const { data, error } = await op.select("integer_id,id").single();
-
-
-      if (error) return flash("Save failed: " + error.message, "error");
-
-      window.__editingProblemId = null;
-
-        flash(`Saved. integer_id=${data.integer_id}`, "ok");
-      nav("viewAll");
-      await loadProblems();
-    });
-
-    function getHintInputs(wrapId) {
-  return Array.from(document.querySelectorAll(`#${wrapId} textarea`))
-    .map(t => t.value.trim())
-    .filter(Boolean);
-}
-
-function addHintBox(wrapId, placeholder) {
-  const wrap = document.getElementById(wrapId);
-  const box = document.createElement("div");
-  box.style.marginTop = "8px";
-  box.innerHTML = `
-    <textarea placeholder="${placeholder}"></textarea>
-    <div style="margin-top:6px;">
-      <button type="button" class="secondary">Remove</button>
-    </div>
-  `;
-  box.querySelector("button").addEventListener("click", () => box.remove());
-  wrap.appendChild(box);
-}
-
-el("btnAddNumHint").addEventListener("click", () => {
-  const n = document.querySelectorAll("#num_hints_wrap textarea").length + 1;
-  addHintBox("num_hints_wrap", `Hint ${n}...`);
-});
-
-el("btnAddMcqHint").addEventListener("click", () => {
-  const n = document.querySelectorAll("#mcq_hints_wrap textarea").length + 1;
-  addHintBox("mcq_hints_wrap", `Hint ${n}...`);
-});
-
-function getChoiceInputs() {
-  return Array.from(document.querySelectorAll("#mcq_choices_wrap input"))
-    .map(i => i.value.trim())
-    .filter(Boolean);
-}
-
-function addChoiceBox(placeholder) {
-  const wrap = document.getElementById("mcq_choices_wrap");
-  const row = document.createElement("div");
-  row.style.marginTop = "8px";
-  row.innerHTML = `
-    <input placeholder="${placeholder}" />
-    <div style="margin-top:6px;">
-      <button type="button" class="secondary">Remove</button>
-    </div>
-  `;
-
-  const input = row.querySelector("input");
-  input.addEventListener("input", refreshCorrectChoiceSelect);
-
-  row.querySelector("button").addEventListener("click", () => {
-    row.remove();
-    refreshCorrectChoiceSelect();
-  });
-
-  wrap.appendChild(row);
-  refreshCorrectChoiceSelect();
-}
-
-
-el("btnAddChoice").addEventListener("click", () => {
-  const n = document.querySelectorAll("#mcq_choices_wrap input").length + 1;
-  addChoiceBox(`Choice ${n}...`);
-});
-
-
-function refreshCorrectChoiceSelect() {
-  const select = document.getElementById("mcq_correct_choice_select");
-  const choices = getChoiceInputs();
-
-  select.innerHTML = "";
-
-  choices.forEach(choice => {
-    const opt = document.createElement("option");
-    opt.value = choice;
-    opt.textContent = choice;
-    select.appendChild(opt);
-  });
-}
-
-
-window.editProblem = async function (problemId) {
-  const { data: p, error } = await sb
-    .from("problems")
-    .select("*")
-    .eq("id", problemId)
-    .single();
-
-  if (error) return flash("Load for edit failed: " + error.message, "error");
-
-  // Go to the correct form
-  if (p.problem_type === "mc_single_select") nav("viewMCQ");
-  else nav("viewNum");
-
-  // Fill common fields
-  if (p.problem_type === "mc_single_select") {
-    el("mcq_statement").value = p.statement ?? "";
-el("mcq_solution_wrap").innerHTML = "";
-(p.solution || []).forEach((_, i) => addTextareaBox("mcq_solution_wrap", `Solution page ${i+1}...`));
-Array.from(document.querySelectorAll("#mcq_solution_wrap textarea"))
-  .forEach((t, i) => t.value = (p.solution || [])[i] || "");
-    el("mcq_note").value = p.note ?? "";
-    el("mcq_themes").value = (p.themes || []).join(", ");
-
-    // fields checkboxes
-    document.querySelectorAll("#mcq_fields input[type=checkbox]").forEach(cb => {
-      cb.checked = (p.fields || []).includes(cb.value);
-    });
-
-    // hints
-    el("mcq_hints_wrap").innerHTML = "";
-    (p.hints || []).forEach((h, i) => addHintBox("mcq_hints_wrap", `Hint ${i+1}...`));
-    // set values after creation
-    Array.from(document.querySelectorAll("#mcq_hints_wrap textarea")).forEach((t, i) => t.value = p.hints[i] || "");
-
-    // choices
-    document.getElementById("mcq_choices_wrap").innerHTML = "";
-    (p.choices || []).forEach((c, i) => addChoiceBox(`Choice ${i+1}...`));
-    Array.from(document.querySelectorAll("#mcq_choices_wrap input")).forEach((inp, i) => inp.value = p.choices[i] || "");
-    refreshCorrectChoiceSelect();
-    el("mcq_correct_choice_select").value = p.correct_choice ?? "";
-
-    // rating
-    el("mcq_rating_type").value = p.rating_type;
-    el("mcq_single_value").value = p.single_value ?? 15;
-    el("mcq_range_min").value = p.range_min ?? "";
-    el("mcq_range_max").value = p.range_max ?? "";
-
-  } else {
-    el("num_statement").value = p.statement ?? "";
-el("num_solution_wrap").innerHTML = "";
-(p.solution || []).forEach((_, i) => addTextareaBox("num_solution_wrap", `Solution page ${i+1}...`));
-Array.from(document.querySelectorAll("#num_solution_wrap textarea"))
-  .forEach((t, i) => t.value = (p.solution || [])[i] || "");
-
-  el("num_note").value = p.note ?? "";
-    el("num_themes").value = (p.themes || []).join(", ");
-    el("num_correct_value").value = p.correct_value ?? "";
-
-    document.querySelectorAll("#num_fields input[type=checkbox]").forEach(cb => {
-      cb.checked = (p.fields || []).includes(cb.value);
-    });
-
-    el("num_hints_wrap").innerHTML = "";
-    (p.hints || []).forEach((h, i) => addHintBox("num_hints_wrap", `Hint ${i+1}...`));
-    Array.from(document.querySelectorAll("#num_hints_wrap textarea")).forEach((t, i) => t.value = p.hints[i] || "");
-
-    el("num_rating_type").value = p.rating_type;
-    el("num_single_value").value = p.single_value ?? 15;
-    el("num_range_min").value = p.range_min ?? "";
-    el("num_range_max").value = p.range_max ?? "";
-  }
-
-  // store which problem we're editing
-  window.__editingProblemId = p.id;
-  flash(`Editing problem integer_id=${p.integer_id}`, "ok");
-};
-
-
-function getTextareaList(wrapId) {
-  return Array.from(document.querySelectorAll(`#${wrapId} textarea`))
-    .map(t => t.value.trim())
-    .filter(Boolean);
-}
-
-function addTextareaBox(wrapId, placeholder) {
-  const wrap = document.getElementById(wrapId);
-  const box = document.createElement("div");
-  box.style.marginTop = "8px";
-  box.innerHTML = `
-    <textarea placeholder="${placeholder}"></textarea>
-    <div style="margin-top:6px;">
-      <button type="button" class="secondary">Remove</button>
-    </div>
-  `;
-  box.querySelector("button").addEventListener("click", () => box.remove());
-  wrap.appendChild(box);
-}
-
-el("btnAddMcqSolutionPage").addEventListener("click", () => {
-  const n = document.querySelectorAll("#mcq_solution_wrap textarea").length + 1;
-  addTextareaBox("mcq_solution_wrap", `Solution page ${n}...`);
-});
-
-el("btnAddNumSolutionPage").addEventListener("click", () => {
-  const n = document.querySelectorAll("#num_solution_wrap textarea").length + 1;
-  addTextareaBox("num_solution_wrap", `Solution page ${n}...`);
-});
-
-function normalizeNewlines(s) {
-  return (s || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-}
-
-
-
-
-
-function extractBetween(text, startRe, endRe) {
-  const s = normalizeNewlines(text);
-  const start = startRe.exec(s);
-  if (!start) return null;
-
-  const afterStart = start.index + start[0].length;
-  const rest = s.slice(afterStart);
-
-  const end = endRe.exec(rest);
-  if (!end) return null;
-
-  return rest.slice(0, end.index);
-}
-
-function detectFieldFromEnvPrefix(prefix) {
-  const p = (prefix || "").toUpperCase();
-  if (p === "ALG") return "algebra";
-  if (p === "GEO") return "geometry";
-  if (p === "COMB") return "combinatorics";
-  if (p === "NT") return "number_theory";
-  return null;
-}
-
-function parseLatexProblem(raw, { splitSolutionPages = true } = {}) {
-  const s = normalizeNewlines(raw).trim();
-
-  // TAGS line: "% TAGS: A, B, C"
-  const tagMatch = s.match(/^\s*%\s*TAGS\s*:\s*(.+)\s*$/mi);
-  const tags = tagMatch
-    ? tagMatch[1].split(",").map(x => x.trim()).filter(Boolean)
-    : [];
-
-  // Environment: \begin{NTproblem} / \begin{ALGproblem} / etc.
-  const envMatch = s.match(/\\begin\{([A-Za-z]+)problem\}/);
-  const envPrefix = envMatch ? envMatch[1] : null;
-
-  // Statement: after the \begin{Xproblem} line, until \begin{hints} or \begin{solution} or \begin{note}
-  let statement = "";
-  if (envMatch) {
-    const beginPos = s.indexOf(envMatch[0]);
-    const lineEnd = s.indexOf("\n", beginPos);
-    const start = lineEnd === -1 ? (beginPos + envMatch[0].length) : (lineEnd + 1);
-
-    const candidates = [
-      s.search(/\\begin\{hints\}/),
-      s.search(/\\begin\{solution\}/),
-      s.search(/\\begin\{note\}/),
-      s.search(/\\end\{[A-Za-z]+problem\}/),
-    ].filter(i => i !== -1).sort((a,b) => a-b);
-
-    const end = candidates.length ? candidates[0] : s.length;
-    statement = s.slice(start, end).trim();
-  } else {
-    // fallback: just take everything up to hints
-    const end = s.search(/\\begin\{hints\}/);
-    statement = (end === -1 ? s : s.slice(0, end)).trim();
-  }
-
-  // Hints block
-  const hintsBlock = extractBetween(s, /\\begin\{hints\}/, /\\end\{hints\}/);
-  let hints = [];
-  if (hintsBlock) {
-    // split on "\hint"
-    hints = hintsBlock
-      .split(/\\hint\b/g)
-      .map(x => x.trim())
-      .filter(Boolean);
-  }
-
-  // Solution block
-  const solBlock = extractBetween(s, /\\begin\{solution\}/, /\\end\{solution\}/);
-  let solutionPages = [];
-  if (solBlock) {
-    const solText = solBlock.trim();
-    if (!solText) {
-      solutionPages = [];
-    } else if (splitSolutionPages) {
-      solutionPages = solText
-        .split(/%%\s*NEW\s*PAGE\s*%%/i)
-        .map(x => x.trim())
-        .filter(Boolean);
-    } else {
-      solutionPages = [solText];
-    }
-  }
-
-  // Note block
-  const noteBlock = extractBetween(s, /\\begin\{note\}/, /\\end\{note\}/);
-  const note = noteBlock ? noteBlock.trim() : "";
-
-  return { statement, hints, solutionPages, note, tags, envPrefix };
-}
-
-function setFieldCheckboxes(wrapSelector, fieldValueOrNull) {
-  if (!fieldValueOrNull) return;
-  document.querySelectorAll(`${wrapSelector} input[type=checkbox]`).forEach(cb => {
-    cb.checked = (cb.value === fieldValueOrNull);
-  });
-}
-
-function fillHints(wrapId, hintsArr) {
-  const wrap = document.getElementById(wrapId);
-  wrap.innerHTML = "";
-  (hintsArr || []).forEach((_, i) => addHintBox(wrapId, `Hint ${i+1}...`));
-  Array.from(document.querySelectorAll(`#${wrapId} textarea`))
-    .forEach((t, i) => t.value = (hintsArr || [])[i] || "");
-}
-
-function fillSolutionPages(wrapId, pagesArr) {
-  const wrap = document.getElementById(wrapId);
-  wrap.innerHTML = "";
-  (pagesArr || []).forEach((_, i) => addTextareaBox(wrapId, `Solution page ${i+1}...`));
-  Array.from(document.querySelectorAll(`#${wrapId} textarea`))
-    .forEach((t, i) => t.value = (pagesArr || [])[i] || "");
-}
-
-// MCQ import
-function safeChecked(id, fallback = true) {
-  const node = document.getElementById(id);
-  return node ? !!node.checked : fallback;
-}
-
-el("btnImportMCQ").addEventListener("click", () => {
-  const raw = el("mcq_import_text")?.value || "";
-  const split = safeChecked("mcq_import_split_pages", true); // works even if checkbox doesn't exist
-
-  const p = parseLatexProblem(raw, { splitSolutionPages: split });
-
-  if (!p.statement) return flash("Import failed: could not detect a statement.", "error");
-
-  // Fill ONLY these:
-  el("mcq_statement").value = p.statement;
-  el("mcq_themes").value = (p.tags || []).join(", ");
-  if (p.note) el("mcq_note").value = p.note;
-
-  fillHints("mcq_hints_wrap", p.hints || []);
-  fillSolutionPages("mcq_solution_wrap", p.solutionPages || []);
-
-  const detected = detectFieldFromEnvPrefix(p.envPrefix);
-  if (detected) setFieldCheckboxes("#mcq_fields", detected);
-
-  // Do NOT modify choices / correct choice.
-  flash("Imported: statement/hints/solution/note/themes filled. Choices unchanged.", "ok");
-});
-
-
-// Numeric import
-el("btnImportNum").addEventListener("click", () => {
-  const raw = el("num_import_text")?.value || "";
-  const split = safeChecked("num_import_split_pages", true); // OK even if checkbox not present
-
-  const p = parseLatexProblem(raw, { splitSolutionPages: split });
-
-  if (!p.statement) return flash("Import failed: could not detect a statement.", "error");
-
-  el("num_statement").value = p.statement;
-  el("num_themes").value = (p.tags || []).join(", ");
-  if (p.note) el("num_note").value = p.note;
-
-  fillHints("num_hints_wrap", p.hints || []);
-  fillSolutionPages("num_solution_wrap", p.solutionPages || []);
-
-  const detected = detectFieldFromEnvPrefix(p.envPrefix);
-  if (detected) setFieldCheckboxes("#num_fields", detected);
-
-  flash("Imported: statement/hints/solution/note/themes filled.", "ok");
-});
-
-
-
-    // =========
-    // BOOT
-    // =========
-    sb.auth.onAuthStateChange((_event, _session) => {
-      refreshAuthUI();
-    });
-
-    (async function boot() {
-      await refreshAuthUI();
-      // default screen after auth
-      const { data: { session } } = await sb.auth.getSession();
-      if (session) { nav("viewAll"); await loadProblems(); }
-    })();
-
-    addHintBox("num_hints_wrap", "Hint 1...");
-    addHintBox("mcq_hints_wrap", "Hint 1...");
-
-    addChoiceBox("Choice 1...");
-    addChoiceBox("Choice 2...");
-
-    addTextareaBox("mcq_solution_wrap", "Solution page 1...");
-    addTextareaBox("num_solution_wrap", "Solution page 1...");
-
-
-  </script>
-</body>
+      el("googleSignIn").addEventListener("click", async () => {
+        if (signingIn) return;
+        setLoginBusy(true);
+        el("googleSignIn").textContent = "Opening Google…";
+        clearMessage();
+        try {
+          const { error } = await sb.auth.signInWithOAuth({
+            provider: "google",
+            options: { redirectTo: location.origin + location.pathname },
+          });
+          if (error) throw error;
+        } catch (error) {
+          flash("Google sign in failed: " + error.message, true);
+        } finally {
+          setLoginBusy(false);
+          el("googleSignIn").textContent = "Continue with Google";
+        }
+      });
+      el("loginForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (signingIn) return;
+        setLoginBusy(true);
+        try {
+          const { data, error } = await sb.auth.signInWithPassword({
+            email: el("email").value.trim(),
+            password: el("password").value,
+          });
+          if (error) throw error;
+          el("password").value = "";
+          await checkSession(data.session);
+        } catch (error) {
+          flash("Sign in failed: " + error.message, true);
+        } finally {
+          setLoginBusy(false);
+        }
+      });
+      el("signOut").addEventListener("click", async () => {
+        if (state.busy) return;
+        const { error } = await sb.auth.signOut();
+        if (error) {
+          flash("Sign out failed: " + error.message, true);
+          return;
+        }
+        clearMessage();
+        await checkSession(null);
+      });
+      (async function boot() {
+        try {
+          if (!window.supabase)
+            throw new Error(
+              "The database library could not load. Check your connection and reload the page.",
+            );
+          sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          sb.auth.onAuthStateChange((event, session) => {
+            if (event === "SIGNED_OUT") checkSession(null);
+            else if (event === "SIGNED_IN")
+              setTimeout(
+                () => checkSession(session).catch((error) => flash(error.message, true)),
+                0,
+              );
+          });
+          const { data, error } = await sb.auth.getSession();
+          if (error) throw error;
+          await checkSession(data.session);
+        } catch (error) {
+          flash(error.message, true);
+        }
+      })();
+    </script>
+  </body>
 </html>
